@@ -19,9 +19,14 @@ public class Notification {
 
     private String type; // e.g., "CRITICAL_ANOMALY"
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     public Notification() {}
 
-    public Notification(String message, String type) {
+    public Notification(User user, String message, String type) {
+        this.user = user;
         this.message = message;
         this.type = type;
         this.dateCreation = LocalDateTime.now();
@@ -41,6 +46,9 @@ public class Notification {
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
     @PrePersist
     public void prePersist() {

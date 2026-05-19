@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Bug, Plus, Edit2, MessageSquare, Trash2 } from 'lucide-react';
+import { Bug, Plus, Edit2, MessageSquare, Trash2, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageHeader from '../../components/PageHeader';
 import Modal from '../../components/Modal';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { PageLoader, EmptyState, Spinner } from '../../components/Loaders';
-import { anomalieAPI, projetAPI, executionAPI, fileAPI } from '../../api/services';
+import { chatAPI, anomalieAPI, projetAPI, executionAPI, fileAPI } from '../../api/services';
 import { useAuth } from '../../context/AuthContext';
 import {
   getErrorMessage, formatDateTime, getGraviteColor,
@@ -125,6 +125,32 @@ export default function AnomaliesTesteur() {
     }
   };
 
+
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateAI = async () => {
+    if (!form.titre.trim()) {
+      toast.error("Saisissez un titre pour guider l'IA");
+      return;
+    }
+    setIsGenerating(true);
+    const loadingToast = toast.loading("L'IA génère la description...");
+    try {
+      const { data } = await chatAPI.generateAnomalie({
+        titre: form.titre,
+        gravite: form.gravite
+      });
+      if (data.description) {
+        setForm(prev => ({ ...prev, description: data.description }));
+        toast.success("Description générée !");
+      }
+    } catch (err) {
+      toast.error("Échec de la génération");
+    } finally {
+      setIsGenerating(false);
+      toast.dismiss(loadingToast);
+    }
+  };
 
   const openDetail = (a) => {
     setSelected(a);
@@ -281,13 +307,24 @@ export default function AnomaliesTesteur() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="form-label">Titre *</label>
-            <input
-              type="text" required
-              value={form.titre}
-              onChange={(e) => setForm({ ...form, titre: e.target.value })}
-              className="form-input"
-              placeholder="ex: Bouton de validation ne répond pas"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text" required
+                value={form.titre}
+                onChange={(e) => setForm({ ...form, titre: e.target.value })}
+                className="form-input"
+                placeholder="ex: Bouton de validation ne répond pas"
+              />
+              <button
+                type="button"
+                onClick={handleGenerateAI}
+                disabled={isGenerating || !form.titre.trim()}
+                className="btn-secondary px-3 flex items-center gap-1.5 whitespace-nowrap text-xs border-primary-200 text-primary-600 hover:bg-primary-50 disabled:opacity-50"
+              >
+                <Sparkles size={14} className={isGenerating ? 'animate-spin' : ''} />
+                IA
+              </button>
+            </div>
           </div>
           <div>
             <label className="form-label">Description</label>

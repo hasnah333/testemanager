@@ -18,7 +18,7 @@ import toast from 'react-hot-toast';
 export default function TesteurDashboard() {
   const { user } = useAuth();
   const [projets, setProjets] = useState([]);
-  const [selectedProjet, setSelectedProjet] = useState(null);
+  const [selectedProjet, setSelectedProjet] = useState('global');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(false);
@@ -31,7 +31,7 @@ export default function TesteurDashboard() {
         const { data } = await projetAPI.getByTesteur(user.userId);
         if (data.length > 0) {
           setProjets(data);
-          setSelectedProjet(data[0]);
+          setSelectedProjet('global');
         } else {
           setProjets([]);
           setSelectedProjet(null);
@@ -46,21 +46,55 @@ export default function TesteurDashboard() {
     })();
   }, [user]);
 
-  // Charger les stats du projet sélectionné
+  // Charger les stats du projet sélectionné ou agréger
   useEffect(() => {
     if (!selectedProjet) {
       setStats(null);
       return;
     }
     setLoadingStats(true);
-    dashboardAPI.getByProjet(selectedProjet.id)
-      .then(({ data }) => setStats(data))
-      .catch((err) => {
-        setStats(null);
-        toast.error(getErrorMessage(err, 'Stats indisponibles'));
-      })
-      .finally(() => setLoadingStats(false));
-  }, [selectedProjet]);
+    if (selectedProjet === 'global') {
+      Promise.all(projets.map(p => dashboardAPI.getByProjet(p.id)))
+        .then((results) => {
+          const aggregated = results.reduce((acc, { data }) => {
+            return {
+              totalModules: acc.totalModules + (data.totalModules || 0),
+              totalScenarios: acc.totalScenarios + (data.totalScenarios || 0),
+              totalCasDeTest: acc.totalCasDeTest + (data.totalCasDeTest || 0),
+              totalExecutions: acc.totalExecutions + (data.totalExecutions || 0),
+              testsReussis: acc.testsReussis + (data.testsReussis || 0),
+              testsEchoues: acc.testsEchoues + (data.testsEchoues || 0),
+              totalAnomalies: acc.totalAnomalies + (data.totalAnomalies || 0),
+              anomaliesCritiques: acc.anomaliesCritiques + (data.anomaliesCritiques || 0)
+            };
+          }, {
+            totalModules: 0,
+            totalScenarios: 0,
+            totalCasDeTest: 0,
+            totalExecutions: 0,
+            testsReussis: 0,
+            testsEchoues: 0,
+            totalAnomalies: 0,
+            anomaliesCritiques: 0
+          });
+          aggregated.tauxReussite = aggregated.totalExecutions === 0 ? 0 : (aggregated.testsReussis * 100.0) / aggregated.totalExecutions;
+          setStats(aggregated);
+        })
+        .catch((err) => {
+          setStats(null);
+          toast.error(getErrorMessage(err, 'Stats indisponibles'));
+        })
+        .finally(() => setLoadingStats(false));
+    } else {
+      dashboardAPI.getByProjet(selectedProjet.id)
+        .then(({ data }) => setStats(data))
+        .catch((err) => {
+          setStats(null);
+          toast.error(getErrorMessage(err, 'Stats indisponibles'));
+        })
+        .finally(() => setLoadingStats(false));
+    }
+  }, [selectedProjet, projets]);
 
   if (loading) return <PageLoader />;
 
@@ -96,21 +130,26 @@ export default function TesteurDashboard() {
     <div className="space-y-6">
       <PageHeader
         title={`Bonjour, ${user?.username}`}
-        subtitle={selectedProjet
-          ? `Statistiques du projet « ${selectedProjet.nom} »`
-          : "Voici l'état de vos projets de test"
+        subtitle={selectedProjet === 'global'
+          ? "Voici l'état global de vos projets de test"
+          : `Statistiques du projet « ${selectedProjet.nom} »`
         }
       />
 
       {/* Sélecteur de projet */}
-      {(projets.length > 1 || projets.length === 1) && (
+      {(projets.length > 0) && (
         <div className="card p-4">
           <label className="form-label">Projet sélectionné</label>
           <select
-            value={selectedProjet?.id || ''}
-            onChange={(e) => setSelectedProjet(projets.find((p) => p.id === parseInt(e.target.value)))}
+            value={selectedProjet === 'global' ? 'global' : selectedProjet?.id || ''}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === 'global') setSelectedProjet('global');
+              else setSelectedProjet(projets.find((p) => p.id === parseInt(val)));
+            }}
             className="form-input md:max-w-md"
           >
+            <option value="global">Tous les projets</option>
             {projets.map((p) => (
               <option key={p.id} value={p.id}>{p.nom}</option>
             ))}
@@ -119,7 +158,21 @@ export default function TesteurDashboard() {
       )}
 
       {/* Projet info */}
-      {selectedProjet && (
+      {selectedProjet === 'global' ? (
+        <div className="card p-6 bg-gradient-to-br from-primary-500 to-primary-600 text-white border-0">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 bg-white/20 rounded-lg flex items-center justify-center">
+              <FolderKanban className="w-7 h-7" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold">Tous les projets</h2>
+              <p className="text-sm text-white/90 mt-1">
+                Visualisez l'état d'avancement et les statistiques consolidées de l'ensemble de vos projets assignés.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : selectedProjet && (
         <div className="card p-6 bg-gradient-to-br from-primary-500 to-primary-600 text-white border-0">
           <div className="flex items-start gap-4">
             <div className="w-14 h-14 bg-white/20 rounded-lg flex items-center justify-center">

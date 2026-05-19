@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,8 +26,8 @@ public class AnomalieController {
 
     @PostMapping
     @PreAuthorize("hasRole('TESTEUR') or hasRole('ADMIN')")
-    public ResponseEntity<Anomalie> declarer(@Valid @RequestBody AnomalieDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(anomalieService.declarer(dto));
+    public ResponseEntity<Anomalie> declarer(@Valid @RequestBody AnomalieDTO dto, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(anomalieService.declarer(dto, userDetails.getUsername()));
     }
 
     @GetMapping
@@ -60,14 +62,14 @@ public class AnomalieController {
 
     @PatchMapping("/{id}/statut")
     @PreAuthorize("hasRole('TESTEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<Anomalie> changerStatut(@PathVariable Long id, @RequestParam StatutAnomalie statut) {
-        return ResponseEntity.ok(anomalieService.changerStatut(id, statut));
+    public ResponseEntity<Anomalie> changerStatut(@PathVariable Long id, @RequestParam StatutAnomalie statut, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(anomalieService.changerStatut(id, statut, userDetails.getUsername()));
     }
 
     @PostMapping("/{id}/commentaire")
     @PreAuthorize("hasRole('TESTEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
-    public ResponseEntity<Anomalie> commenter(@PathVariable Long id, @RequestBody String commentaire) {
-        return ResponseEntity.ok(anomalieService.commenter(id, commentaire));
+    public ResponseEntity<Anomalie> commenter(@PathVariable Long id, @RequestBody String commentaire, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(anomalieService.commenter(id, commentaire, userDetails.getUsername()));
     }
 
     @DeleteMapping("/{id}")

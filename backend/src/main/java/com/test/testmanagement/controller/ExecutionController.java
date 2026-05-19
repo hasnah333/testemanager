@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,14 +26,14 @@ public class ExecutionController {
 
     @PostMapping
     @PreAuthorize("hasRole('TESTEUR') or hasRole('ADMIN')")
-    public ResponseEntity<Execution> lancer(@Valid @RequestBody ExecutionDTO dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(executionService.lancer(dto));
+    public ResponseEntity<Execution> lancer(@Valid @RequestBody ExecutionDTO dto, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(executionService.lancer(dto, userDetails.getUsername()));
     }
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('TESTEUR') or hasRole('ADMIN')")
-    public ResponseEntity<Execution> mettreAJourStatut(@PathVariable Long id, @RequestBody ExecutionDTO dto) {
-        return ResponseEntity.ok(executionService.mettreAJourStatut(id, dto));
+    public ResponseEntity<Execution> mettreAJourStatut(@PathVariable Long id, @RequestBody ExecutionDTO dto, @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(executionService.mettreAJourStatut(id, dto, userDetails.getUsername()));
     }
 
     @GetMapping("/cas/{casDeTestId}")

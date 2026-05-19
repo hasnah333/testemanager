@@ -3,11 +3,14 @@ package com.test.testmanagement.service;
 import com.test.testmanagement.dto.AnomalieDTO;
 import com.test.testmanagement.entity.Anomalie;
 import com.test.testmanagement.entity.Execution;
+import com.test.testmanagement.entity.User;
 import com.test.testmanagement.enums.Gravite;
 import com.test.testmanagement.enums.StatutAnomalie;
 import com.test.testmanagement.exception.ResourceNotFoundException;
 import com.test.testmanagement.repository.AnomalieRepository;
 import com.test.testmanagement.repository.ExecutionRepository;
+import com.test.testmanagement.repository.UserRepository;
+import com.test.testmanagement.repository.MembreProjetRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -19,19 +22,25 @@ public class AnomalieService {
     private final AnomalieRepository anomalieRepository;
     private final ExecutionRepository executionRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final MembreProjetRepository membreProjetRepository;
 
     public AnomalieService(AnomalieRepository anomalieRepository,
                            ExecutionRepository executionRepository,
-                           NotificationService notificationService) {
+                           NotificationService notificationService,
+                           UserRepository userRepository,
+                           MembreProjetRepository membreProjetRepository) {
         this.anomalieRepository = anomalieRepository;
         this.executionRepository = executionRepository;
         this.notificationService = notificationService;
+        this.userRepository = userRepository;
+        this.membreProjetRepository = membreProjetRepository;
     }
 
     /**
      * Déclare une anomalie liée à une exécution.
      */
-    public Anomalie declarer(AnomalieDTO dto) {
+    public Anomalie declarer(AnomalieDTO dto, String username) {
         Execution execution = executionRepository.findById(dto.getExecutionId())
                 .orElseThrow(() -> new ResourceNotFoundException("Exécution introuvable"));
 
@@ -44,12 +53,13 @@ public class AnomalieService {
 
         Anomalie saved = anomalieRepository.save(anomalie);
 
-        // Point 3: Notification si anomalie CRITIQUE
-        if (saved.getGravite() == Gravite.CRITIQUE) {
-            String msg = "Alerte : Une anomalie CRITIQUE a été déclarée sur le projet "
-                         + execution.getSessionTest().getProjet().getNom() + " : " + saved.getTitre();
-            notificationService.createNotification(msg, "CRITICAL_ANOMALY");
-        }
+        User actor = userRepository.findByUsername(username).orElse(null);
+
+        // Notification pour toute anomalie, avec préfixe spécifique pour les critiques
+        String prefix = saved.getGravite() == Gravite.CRITIQUE ? "⚠️ Alerte : Une anomalie CRITIQUE" : "🐞 Nouvelle anomalie (" + saved.getGravite() + ")";
+        String msg = prefix + " a été déclarée sur le projet "
+                     + execution.getSessionTest().getProjet().getNom() + " : " + saved.getTitre();
+        notificationService.notifyProjectMembersExcept(execution.getSessionTest().getProjet(), actor, msg, saved.getGravite() == Gravite.CRITIQUE ? "CRITICAL_ANOMALY" : "NEW_ANOMALY");
 
         return saved;
     }
@@ -57,19 +67,35 @@ public class AnomalieService {
     /**
      * Change le statut d'une anomalie.
      */
-    public Anomalie changerStatut(Long id, StatutAnomalie statut) {
+    public Anomalie changerStatut(Long id, StatutAnomalie statut, String username) {
         Anomalie anomalie = findById(id);
+        StatutAnomalie ancienStatut = anomalie.getStatut();
         anomalie.setStatut(statut);
-        return anomalieRepository.save(anomalie);
+        Anomalie saved = anomalieRepository.save(anomalie);
+
+        User actor = userRepository.findByUsername(username).orElse(null);
+
+        String msg = "🔄 L'anomalie '" + saved.getTitre() + "' a changé de statut : " 
+                     + (ancienStatut != null ? ancienStatut.name() : "INCONNU") + " ➡️ " + statut.name();
+        
+        notificationService.notifyProjectMembersExcept(saved.getExecution().getSessionTest().getProjet(), actor, msg, "ANOMALY_STATUS_CHANGE");
+        return saved;
     }
 
     /**
      * Ajoute un commentaire sur une anomalie.
      */
-    public Anomalie commenter(Long id, String commentaire) {
+    public Anomalie commenter(Long id, String commentaire, String username) {
         Anomalie anomalie = findById(id);
         anomalie.setCommentaire(commentaire);
-        return anomalieRepository.save(anomalie);
+        Anomalie saved = anomalieRepository.save(anomalie);
+
+        User actor = userRepository.findByUsername(username).orElse(null);
+
+        String msg = "💬 Nouveau commentaire sur l'anomalie '" + saved.getTitre() + "' : " + commentaire;
+        
+        notificationService.notifyProjectMembersExcept(saved.getExecution().getSessionTest().getProjet(), actor, msg, "ANOMALY_COMMENT");
+        return saved;
     }
 
     public List<Anomalie> findAll() {

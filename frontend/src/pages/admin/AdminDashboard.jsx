@@ -36,9 +36,7 @@ export default function AdminDashboard() {
         setTesteursCount(testeursRes.data?.length || 0);
         setProjetsCount(projetsRes.data?.length || 0);
         setProjets(projetsRes.data || []);
-        if (projetsRes.data?.length > 0) {
-          setSelectedProjet(String(projetsRes.data[0].id));
-        }
+        setSelectedProjet('global');
       } catch (err) {
         toast.error(getErrorMessage(err, 'Impossible de charger les statistiques'));
       } finally {
@@ -54,10 +52,15 @@ export default function AdminDashboard() {
     const fetchProjetStats = async () => {
       setLoadingStats(true);
       try {
-        const { data } = await dashboardAPI.getByProjet(parseInt(selectedProjet, 10));
-        setStats(data);
+        let res;
+        if (selectedProjet === 'global') {
+          res = await dashboardAPI.getGlobal();
+        } else {
+          res = await dashboardAPI.getByProjet(parseInt(selectedProjet, 10));
+        }
+        setStats(res.data);
       } catch (err) {
-        toast.error(getErrorMessage(err, 'Impossible de charger les statistiques du projet'));
+        toast.error(getErrorMessage(err, 'Impossible de charger les statistiques'));
         setStats(null);
       } finally {
         setLoadingStats(false);
@@ -94,9 +97,9 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       <PageHeader
         title="Tableau de bord"
-        subtitle={selectedProjet
-          ? `Statistiques du projet « ${projets.find((p) => String(p.id) === selectedProjet)?.nom || ''} »`
-          : 'Vue d\'ensemble de la plateforme'
+        subtitle={selectedProjet === 'global'
+          ? "Vue d'ensemble globale de tous les projets de la plateforme"
+          : `Statistiques du projet « ${projets.find((p) => String(p.id) === selectedProjet)?.nom || ''} »`
         }
       />
 
@@ -109,15 +112,16 @@ export default function AdminDashboard() {
               onChange={(e) => setSelectedProjet(e.target.value)}
               className="form-input"
             >
+              <option value="global">Tous les projets</option>
               {projets.map((p) => (
                 <option key={p.id} value={String(p.id)}>{p.nom}</option>
               ))}
             </select>
           </div>
           <div className="text-sm text-gray-500">
-            {selectedProjet
-              ? 'Les statistiques ci-dessous correspondent au projet sélectionné.'
-              : 'Aucun projet sélectionné.'
+            {selectedProjet === 'global'
+              ? 'Les statistiques ci-dessous correspondent à l\'ensemble des projets de la plateforme.'
+              : 'Les statistiques ci-dessous correspondent au projet sélectionné.'
             }
           </div>
         </div>

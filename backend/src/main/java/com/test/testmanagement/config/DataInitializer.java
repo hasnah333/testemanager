@@ -3,6 +3,10 @@ package com.test.testmanagement.config;
 import com.test.testmanagement.entity.User;
 import com.test.testmanagement.enums.Role;
 import com.test.testmanagement.repository.UserRepository;
+import com.test.testmanagement.repository.ProjetRepository;
+import com.test.testmanagement.entity.Projet;
+import com.test.testmanagement.enums.ProjetStatus;
+import java.time.LocalDateTime;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,10 +17,12 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ProjetRepository projetRepository;
 
-    public DataInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public DataInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder, ProjetRepository projetRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.projetRepository = projetRepository;
     }
 
     @Override
@@ -66,6 +72,17 @@ public class DataInitializer implements CommandLineRunner {
             manager.setPassword(passwordEncoder.encode("manager123"));
             userRepository.save(manager);
             System.out.println(">>> Mot de passe manager réinitialisé (manager/manager123)");
+        }
+
+        // Création d'un projet de démo Galexy si la base est vide
+        if (projetRepository.count() == 0) {
+            Projet galexy = new Projet();
+            galexy.setNom("Projet Galexy - Démo");
+            galexy.setDescription("Projet de démonstration basé sur la solution Galexy (Gestion Juridique).");
+            galexy.setStatus(ProjetStatus.EN_COURS);
+            galexy.setDateCreation(LocalDateTime.now());
+            projetRepository.save(galexy);
+            System.out.println(">>> Projet Galexy de démonstration créé !");
         }
     }
 }

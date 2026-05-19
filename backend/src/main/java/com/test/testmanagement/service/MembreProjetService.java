@@ -19,11 +19,16 @@ public class MembreProjetService {
     private final MembreProjetRepository membreProjetRepository;
     private final UserRepository userRepository;
     private final ProjetRepository projetRepository;
+    private final NotificationService notificationService;
 
-    public MembreProjetService(MembreProjetRepository membreProjetRepository, UserRepository userRepository, ProjetRepository projetRepository) {
+    public MembreProjetService(MembreProjetRepository membreProjetRepository, 
+                               UserRepository userRepository, 
+                               ProjetRepository projetRepository,
+                               NotificationService notificationService) {
         this.membreProjetRepository = membreProjetRepository;
         this.userRepository = userRepository;
         this.projetRepository = projetRepository;
+        this.notificationService = notificationService;
     }
 
     public MembreProjet assigner(Long userId, Long projetId) {
@@ -37,14 +42,27 @@ public class MembreProjetService {
         MembreProjet membreProjet = new MembreProjet();
         membreProjet.setUser(user);
         membreProjet.setProjet(projet);
-        return membreProjetRepository.save(membreProjet);
+        MembreProjet saved = membreProjetRepository.save(membreProjet);
+
+        String msg = "👤 L'utilisateur '" + user.getUsername() + "' a été affecté au projet '" + projet.getNom() + "'";
+        notificationService.createNotification(user, msg, "MEMBER_ASSIGNED");
+
+        return saved;
     }
 
     public void retirer(Long userId, Long projetId) {
         if (!membreProjetRepository.existsByUserIdAndProjetId(userId, projetId)) {
             throw new ResourceNotFoundException("Membre introuvable");
         }
+        User user = userRepository.findById(userId).orElse(null);
+        Projet projet = projetRepository.findById(projetId).orElse(null);
+
         membreProjetRepository.deleteByUserIdAndProjetId(userId, projetId);
+
+        if (user != null && projet != null) {
+            String msg = "🚫 L'utilisateur '" + user.getUsername() + "' a été retiré du projet '" + projet.getNom() + "'";
+            notificationService.createNotification(user, msg, "MEMBER_REMOVED");
+        }
     }
 
     public List<MembreProjet> findByProjetId(Long projetId) {

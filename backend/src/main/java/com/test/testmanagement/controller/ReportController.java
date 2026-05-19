@@ -33,4 +33,18 @@ public class ReportController {
                 .headers(headers)
                 .body(pdf);
     }
+
+    @GetMapping("/projet/{projetId}/csv")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('MANAGER') or hasRole('TESTEUR')")
+    public ResponseEntity<byte[]> downloadProjetCSV(@PathVariable Long projetId) {
+        byte[] csv = reportService.generateProjetCSV(projetId);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("text/csv"));
+        headers.setContentDispositionFormData("attachment", "rapport_projet_" + projetId + ".csv");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csv);
+    }
 }

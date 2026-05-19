@@ -19,7 +19,7 @@ import toast from 'react-hot-toast';
 export default function ManagerDashboard() {
   const { user } = useAuth();
   const [projets, setProjets] = useState([]);
-  const [selectedProjet, setSelectedProjet] = useState(null);
+  const [selectedProjet, setSelectedProjet] = useState('global');
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(false);
@@ -29,7 +29,7 @@ export default function ManagerDashboard() {
       try {
         const { data } = await projetAPI.getByTesteur(user.userId);
         setProjets(data);
-        if (data.length > 0) setSelectedProjet(data[0]);
+        setSelectedProjet('global');
       } catch (err) {
         toast.error(getErrorMessage(err));
       } finally {
@@ -41,14 +41,21 @@ export default function ManagerDashboard() {
   useEffect(() => {
     if (!selectedProjet) return;
     setLoadingStats(true);
-    dashboardAPI.getByProjet(selectedProjet.id)
-      .then(({ data }) => setStats(data))
-      .catch((err) => toast.error(getErrorMessage(err)))
-      .finally(() => setLoadingStats(false));
+    if (selectedProjet === 'global') {
+      dashboardAPI.getGlobal()
+        .then(({ data }) => setStats(data))
+        .catch((err) => toast.error(getErrorMessage(err)))
+        .finally(() => setLoadingStats(false));
+    } else {
+      dashboardAPI.getByProjet(selectedProjet.id)
+        .then(({ data }) => setStats(data))
+        .catch((err) => toast.error(getErrorMessage(err)))
+        .finally(() => setLoadingStats(false));
+    }
   }, [selectedProjet]);
 
   const handleValidate = async () => {
-    if (!selectedProjet) return;
+    if (!selectedProjet || selectedProjet === 'global') return;
     try {
       const { data } = await projetAPI.validate(selectedProjet.id);
       setSelectedProjet(data);
@@ -89,17 +96,29 @@ export default function ManagerDashboard() {
           <div className="card p-4">
             <label className="form-label">Sélectionner un projet à superviser</label>
             <select
-              value={selectedProjet?.id || ''}
-              onChange={(e) => setSelectedProjet(projets.find(p => p.id === parseInt(e.target.value)))}
+              value={selectedProjet === 'global' ? 'global' : selectedProjet?.id || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val === 'global') setSelectedProjet('global');
+                else setSelectedProjet(projets.find(p => p.id === parseInt(val)));
+              }}
               className="form-input"
             >
+              <option value="global">Tous les projets</option>
               {projets.map(p => (
                 <option key={p.id} value={p.id}>{p.nom}</option>
               ))}
             </select>
           </div>
 
-          {selectedProjet && (
+          {selectedProjet === 'global' ? (
+            <div className="card p-6 border-l-4 border-primary-500">
+              <h2 className="text-xl font-bold text-gray-800">Tous les projets</h2>
+              <p className="text-gray-500 mt-2">
+                Supervision globale et statistiques agrégées pour l'ensemble des projets de test de la plateforme.
+              </p>
+            </div>
+          ) : selectedProjet && (
             <div className="card p-6 border-l-4 border-primary-500">
               <h2 className="text-xl font-bold text-gray-800">{selectedProjet.nom}</h2>
               <p className="text-gray-500 mt-2">{selectedProjet.description}</p>
@@ -157,8 +176,8 @@ export default function ManagerDashboard() {
             <StatCard
               icon={CheckSquare}
               label="Validation"
-              value={selectedProjet?.status === 'VALIDE' ? 'Validé' : 'En attente'}
-              color={selectedProjet?.status === 'VALIDE' ? 'green' : 'primary'}
+              value={selectedProjet === 'global' ? 'Global' : (selectedProjet?.status === 'VALIDE' ? 'Validé' : 'En attente')}
+              color={selectedProjet === 'global' ? 'purple' : (selectedProjet?.status === 'VALIDE' ? 'green' : 'primary')}
             />
           </div>
 
@@ -205,9 +224,9 @@ export default function ManagerDashboard() {
                   </Link>
                   <button 
                     onClick={handleValidate}
-                    disabled={selectedProjet?.status === 'VALIDE'}
+                    disabled={selectedProjet === 'global' || selectedProjet?.status === 'VALIDE'}
                     className={`flex items-center justify-between p-3 rounded-lg transition text-left ${
-                      selectedProjet?.status === 'VALIDE' 
+                      selectedProjet === 'global' || selectedProjet?.status === 'VALIDE' 
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
                       : 'bg-primary-50 hover:bg-primary-100 text-primary-600'
                     }`}
@@ -215,7 +234,7 @@ export default function ManagerDashboard() {
                     <div className="flex items-center gap-3">
                       <CheckSquare className="w-5 h-5" />
                       <span className="text-sm font-medium">
-                        {selectedProjet?.status === 'VALIDE' ? 'Phase déjà validée' : 'Valider la Phase Actuelle'}
+                        {selectedProjet === 'global' ? 'Sélectionnez un projet pour valider' : (selectedProjet?.status === 'VALIDE' ? 'Phase déjà validée' : 'Valider la Phase Actuelle')}
                       </span>
                     </div>
                     <TrendingUp className="w-4 h-4 text-gray-400" />

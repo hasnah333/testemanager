@@ -17,9 +17,13 @@ import com.test.testmanagement.repository.AnomalieRepository;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ArrayList;
+import com.itextpdf.layout.element.AreaBreak;
 
 @Service
 public class ReportService {
@@ -101,10 +105,82 @@ public class ReportService {
                 document.add(new Paragraph("Aucune anomalie déclarée pour ce projet.").setItalic());
             }
 
+            // NOUVELLE SECTION : DÉTAILS DES TESTS
+            document.add(new AreaBreak());
+            document.add(new Paragraph("Détails du Plan de Test")
+                    .setBold().setFontSize(18).setTextAlignment(TextAlignment.CENTER).setMarginBottom(15));
+
+            for (ModuleProjet module : projet.getModules()) {
+                document.add(new Paragraph("Module : " + module.getNom())
+                        .setBold().setFontSize(14).setFontColor(ColorConstants.BLUE).setMarginTop(10));
+                document.add(new Paragraph("Description : " + (module.getDescription() != null ? module.getDescription() : "N/A")));
+
+                for (Scenario scenario : module.getScenarios()) {
+                    document.add(new Paragraph("  Scénario : " + scenario.getTitre())
+                            .setBold().setFontSize(12).setMarginLeft(20).setMarginTop(5));
+                    
+                    if (!scenario.getCasDeTests().isEmpty()) {
+                        Table testTable = new Table(UnitValue.createPointArray(new float[]{100, 150, 150, 80}));
+                        testTable.setMarginLeft(30).setMarginTop(5).setMarginBottom(10);
+                        testTable.addHeaderCell(new Cell().add(new Paragraph("ID / Titre").setBold().setFontSize(10)));
+                        testTable.addHeaderCell(new Cell().add(new Paragraph("Étapes").setBold().setFontSize(10)));
+                        testTable.addHeaderCell(new Cell().add(new Paragraph("Résultat Attendu").setBold().setFontSize(10)));
+                        testTable.addHeaderCell(new Cell().add(new Paragraph("Priorité").setBold().setFontSize(10)));
+
+                        for (CasDeTest ct : scenario.getCasDeTests()) {
+                            testTable.addCell(new Cell().add(new Paragraph("CT-" + ct.getId() + "\n" + ct.getTitre()).setFontSize(9)));
+                            testTable.addCell(new Cell().add(new Paragraph(ct.getEtapes() != null ? ct.getEtapes() : "").setFontSize(9)));
+                            testTable.addCell(new Cell().add(new Paragraph(ct.getResultatAttendu() != null ? ct.getResultatAttendu() : "").setFontSize(9)));
+                            testTable.addCell(new Cell().add(new Paragraph(ct.getPriority().toString()).setFontSize(9)));
+                        }
+                        document.add(testTable);
+                    } else {
+                        document.add(new Paragraph("    (Aucun cas de test)").setItalic().setMarginLeft(40));
+                    }
+                }
+            }
+
             document.close();
             return baos.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException("Erreur lors de la génération du PDF", e);
+        }
+    }
+
+    public byte[] generateProjetCSV(Long projetId) {
+        Projet projet = projetRepository.findById(projetId)
+                .orElseThrow(() -> new RuntimeException("Projet non trouvé"));
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             PrintWriter writer = new PrintWriter(baos, false, StandardCharsets.UTF_8)) {
+            
+            // UTF-8 BOM for Excel
+            baos.write(0xEF);
+            baos.write(0xBB);
+            baos.write(0xBF);
+
+            // Header
+            writer.println("Module;Scenario;ID Cas de Test;Titre Cas de Test;Priorite;Etapes;Resultat Attendu");
+
+            for (ModuleProjet module : projet.getModules()) {
+                for (Scenario scenario : module.getScenarios()) {
+                    for (CasDeTest ct : scenario.getCasDeTests()) {
+                        writer.printf("%s;%s;CT-%d;%s;%s;\"%s\";\"%s\"%n",
+                                module.getNom(),
+                                scenario.getTitre(),
+                                ct.getId(),
+                                ct.getTitre(),
+                                ct.getPriority(),
+                                (ct.getEtapes() != null ? ct.getEtapes().replace("\"", "'").replace("\n", " ") : ""),
+                                (ct.getResultatAttendu() != null ? ct.getResultatAttendu().replace("\"", "'").replace("\n", " ") : "")
+                        );
+                    }
+                }
+            }
+            writer.flush();
+            return baos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la génération du CSV", e);
         }
     }
 }

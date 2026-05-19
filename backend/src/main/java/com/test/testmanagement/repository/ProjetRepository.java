@@ -17,7 +17,7 @@ public interface ProjetRepository extends JpaRepository<Projet, Long> {
     @Query("SELECT mp.projet FROM MembreProjet mp WHERE mp.user.id = :userId")
     List<Projet> findProjetsByUserId(@Param("userId") Long userId);
 
-    @Query("SELECT p FROM Projet p JOIN p.membres m WHERE m.user.id = :userId AND LOWER(p.nom) LIKE LOWER(CONCAT('%', :query, '%'))")
+    @Query("SELECT p FROM Projet p WHERE LOWER(p.nom) LIKE LOWER(CONCAT('%', :query, '%')) AND EXISTS (SELECT m FROM MembreProjet m WHERE m.projet = p AND m.user.id = :userId)")
     List<Projet> searchByNomAndUserId(@Param("query") String query, @Param("userId") Long userId);
 
     @Query("SELECT COUNT(m) FROM ModuleProjet m WHERE m.projet.id = :projetId")

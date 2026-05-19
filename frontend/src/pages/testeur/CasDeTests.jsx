@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { FileText, Search, Plus, Pencil, Trash2, PlayCircle } from 'lucide-react';
+import { FileText, Search, Plus, Pencil, Trash2, PlayCircle, Sparkles } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import Modal from '../../components/Modal';
 import { PageLoader, EmptyState } from '../../components/Loaders';
-import { casDeTestAPI, projetAPI, scenarioAPI, moduleAPI, sessionAPI, executionAPI } from '../../api/services';
+import { casDeTestAPI, projetAPI, scenarioAPI, moduleAPI, sessionAPI, executionAPI, chatAPI } from '../../api/services';
 import { useAuth } from '../../context/AuthContext';
 import { getErrorMessage } from '../../utils/helpers';
 import toast from 'react-hot-toast';
@@ -226,7 +226,51 @@ export default function CasDeTests() {
       toast.error(getErrorMessage(err));
     }
   };
-  
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateAI = async () => {
+    if (!formData.titre.trim()) {
+      toast.error("Veuillez d'abord saisir un titre pour guider l'IA");
+      return;
+    }
+    if (!formData.scenarioId) {
+      toast.error("Veuillez sélectionner un scénario");
+      return;
+    }
+
+    const scenario = scenarios.find(s => String(s.id) === String(formData.scenarioId));
+    
+    setIsGenerating(true);
+    const loadingToast = toast.loading("L'IA génère les détails du test...");
+    try {
+      const { data } = await chatAPI.generateTestCase({
+        titre: formData.titre,
+        scenarioTitre: scenario?.titre || '',
+        scenarioDescription: scenario?.description || ''
+      });
+
+      if (data.raw) {
+        try {
+          const parsed = JSON.parse(data.raw);
+          setFormData(prev => ({
+            ...prev,
+            description: parsed.description || prev.description,
+            etapes: parsed.etapes || prev.etapes,
+            resultatAttendu: parsed.resultatAttendu || prev.resultatAttendu
+          }));
+          toast.success("Détails générés par l'IA !");
+        } catch (e) {
+          toast.error("Erreur de formatage de l'IA. Réessayez.");
+        }
+      }
+    } catch (err) {
+      toast.error("Échec de la génération IA");
+    } finally {
+      setIsGenerating(false);
+      toast.dismiss(loadingToast);
+    }
+  };
+
 
   const getPriorityStyles = (p) => {
     switch (p) {
@@ -415,6 +459,16 @@ export default function CasDeTests() {
                   required
                   autoFocus
                 />
+                <button
+                  type="button"
+                  onClick={handleGenerateAI}
+                  disabled={isGenerating || !formData.titre.trim()}
+                  className="btn-secondary px-3 flex items-center gap-1.5 whitespace-nowrap text-xs border-primary-200 text-primary-600 hover:bg-primary-50 disabled:opacity-50"
+                  title="Générer les étapes avec l'IA"
+                >
+                  <Sparkles size={14} className={isGenerating ? 'animate-spin' : ''} />
+                  IA
+                </button>
               </div>
             </div>
             <div>

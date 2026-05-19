@@ -37,6 +37,6 @@ public interface AnomalieRepository extends JpaRepository<Anomalie, Long> {
 
     List<Anomalie> findByTitreContainingIgnoreCase(String titre);
 
-    @Query("SELECT a FROM Anomalie a JOIN a.execution.casDeTest.scenario.module.projet.membres m WHERE m.user.id = :userId AND LOWER(a.titre) LIKE LOWER(CONCAT('%', :query, '%'))")
+    @Query("SELECT a FROM Anomalie a WHERE LOWER(a.titre) LIKE LOWER(CONCAT('%', :query, '%')) AND EXISTS (SELECT m FROM MembreProjet m WHERE m.projet = a.execution.casDeTest.scenario.module.projet AND m.user.id = :userId)")
     List<Anomalie> searchByTitreAndUserId(@Param("query") String query, @Param("userId") Long userId);
 }

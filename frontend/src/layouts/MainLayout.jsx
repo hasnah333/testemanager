@@ -4,8 +4,10 @@ import Sidebar from '../components/Sidebar';
 import { Bell, Search, MessageCircle, X, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useEffect } from 'react';
-import { notificationAPI } from '../api/services';
+import { notificationAPI, userAPI } from '../api/services';
+import { getErrorMessage } from '../utils/helpers';
 import toast from 'react-hot-toast';
+import ChatBot from '../components/ChatBot';
 
 export default function MainLayout() {
   const { user, isAdmin } = useAuth();
@@ -178,6 +180,8 @@ export default function MainLayout() {
           <Outlet />
         </main>
 
+        {/* Assistant chat flottant spécialisé en Test Fonctionnel */}
+        <ChatBot />
       </div>
 
       {/* Modal Changement Mot de Passe */}

@@ -140,10 +140,19 @@ export const fileAPI = {
   }
 };
 
+export const chatAPI = {
+  ask: (question, history, context) => api.post('/api/chat/ask', { question, history, context }),
+  generateTestCase: (data) => api.post('/api/chat/generate-test-case', data),
+  generateAnomalie: (data) => api.post('/api/chat/generate-anomalie', data),
+};
 
 export const reportAPI = {
   downloadProjetReport: (projetId) =>
     api.get(`/api/reports/projet/${projetId}`, {
+      responseType: 'blob',
+    }),
+  downloadProjetCSV: (projetId) =>
+    api.get(`/api/reports/projet/${projetId}/csv`, {
       responseType: 'blob',
     }),
 };

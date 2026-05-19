@@ -58,72 +58,18 @@ export default function Rapports() {
     })();
   }, [user, isAdmin]);
 
-  const generateAnomaliesReport = async () => {
-    setGenerating('anomalies');
-    try {
-      const { data } = selectedProjet
-        ? await anomalieAPI.getByProjet(selectedProjet)
-        : await anomalieAPI.getAll();
-      const headers = [
-        { label: 'ID', get: (r) => r.id },
-        { label: 'Titre', get: (r) => r.titre },
-        { label: 'Description', get: (r) => r.description },
-        { label: 'Gravité', get: (r) => formatGravite(r.gravite) },
-        { label: 'Statut', get: (r) => formatStatut(r.statut) },
-        { label: 'Date de création', get: (r) => formatDateTime(r.dateCreation) },
-        { label: 'Commentaire', get: (r) => r.commentaire },
-      ];
-      const csv = toCSV(data, headers);
-      const projet = projets.find((p) => p.id === parseInt(selectedProjet));
-      const suffix = projet ? `_${projet.nom.replace(/\s+/g, '_')}` : '_global';
-      downloadFile(csv, `rapport_anomalies${suffix}_${Date.now()}.csv`);
-      toast.success(`${data.length} anomalie(s) exportée(s)`);
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setGenerating(null);
-    }
-  };
-
-  const generateExecutionsReport = async () => {
+  const generateCSVReport = async () => {
     if (!selectedProjet) {
-      toast.error('Sélectionnez un projet pour générer un rapport d\'exécutions');
+      toast.error('Sélectionnez un projet pour le rapport CSV détaillé');
       return;
     }
-    setGenerating('executions');
+    setGenerating('csv');
     try {
-      const { data } = await executionAPI.getByProjet(selectedProjet);
-      const headers = [
-        { label: 'ID', get: (r) => `EXE-${r.id}` },
-        { label: 'Statut', get: (r) => formatExecStatus(r.statut) },
-        { label: 'Commentaire', get: (r) => r.commentaire },
-        { label: 'Date d\'exécution', get: (r) => formatDateTime(r.dateExecution || r.dateCreation) },
-        { label: 'Cas de test', get: (r) => r.casDeTest?.titre || r.casDeTest?.nom || `CT-${r.casDeTest?.id || ''}` },
-        { label: 'URL Capture', get: (r) => r.urlCapture },
-      ];
-      const csv = toCSV(data, headers);
+      const { data } = await reportAPI.downloadProjetCSV(selectedProjet);
       const projet = projets.find((p) => p.id === parseInt(selectedProjet));
-      const suffix = projet ? `_${projet.nom.replace(/\s+/g, '_')}` : '';
-      downloadFile(csv, `rapport_executions${suffix}_${Date.now()}.csv`);
-      toast.success(`${data.length} exécution(s) exportée(s)`);
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setGenerating(null);
-    }
-  };
-
-  const generateDashboardReport = async () => {
-    setGenerating('dashboard');
-    try {
-      const { data } = selectedProjet
-        ? await dashboardAPI.getByProjet(selectedProjet)
-        : await dashboardAPI.getGlobal();
-      const json = JSON.stringify(data, null, 2);
-      const projet = projets.find((p) => p.id === parseInt(selectedProjet));
-      const suffix = projet ? `_${projet.nom.replace(/\s+/g, '_')}` : '_global';
-      downloadFile(json, `rapport_kpi${suffix}_${Date.now()}.json`, 'application/json');
-      toast.success('Rapport KPI téléchargé');
+      const filename = `Rapport_Détails_${projet?.nom.replace(/\s+/g, '_')}.csv`;
+      downloadFile(data, filename, 'text/csv');
+      toast.success('Rapport CSV détaillé généré');
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -155,43 +101,23 @@ export default function Rapports() {
   const cards = [
     {
       key: 'pdf',
-      title: 'Rapport PDF Officiel',
-      description: 'Document complet formaté avec résumé projet, statistiques et liste détaillée des anomalies',
+      title: 'Rapport PDF Détaillé',
+      description: 'Plan de test complet : Modules, Scénarios, Cas de test détaillés et résumé des anomalies.',
       icon: FileText,
-      color: 'bg-green-50 text-green-600',
+      color: 'bg-red-50 text-red-600',
       action: generatePDFReport,
       format: 'PDF',
       requireProjet: true,
     },
     {
-      key: 'anomalies',
-      title: 'Rapport des anomalies',
-      description: 'Liste complète des anomalies avec gravité, statut, descriptions et commentaires',
-      icon: Bug,
-      color: 'bg-red-50 text-red-600',
-      action: generateAnomaliesReport,
-      format: 'CSV',
-      requireProjet: false,
-    },
-    {
-      key: 'executions',
-      title: 'Rapport des exécutions',
-      description: 'Détail des exécutions de tests avec leurs résultats par projet',
+      key: 'csv',
+      title: 'Export CSV Complet',
+      description: 'Liste brute de tous les modules, scénarios et cas de test avec leurs étapes pour analyse Excel.',
       icon: ClipboardList,
-      color: 'bg-blue-50 text-blue-600',
-      action: generateExecutionsReport,
+      color: 'bg-green-50 text-green-600',
+      action: generateCSVReport,
       format: 'CSV',
       requireProjet: true,
-    },
-    {
-      key: 'dashboard',
-      title: 'Rapport KPI / Synthèse',
-      description: 'Statistiques agrégées : taux de réussite, totaux, métriques globales',
-      icon: FileText,
-      color: 'bg-purple-50 text-purple-600',
-      action: generateDashboardReport,
-      format: 'JSON',
-      requireProjet: false,
     },
   ];
 
