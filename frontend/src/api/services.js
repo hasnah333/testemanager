@@ -17,7 +17,7 @@ export const userAPI = {
   delete: (id) => api.delete(`/api/users/${id}`),
   desactiver: (id) => api.patch(`/api/users/${id}/desactiver`),
   activer: (id) => api.patch(`/api/users/${id}/activer`),
-  changePassword: (newPassword) => api.patch(`/api/users/change-password?newPassword=${newPassword}`),
+  changePassword: (newPassword) => api.patch('/api/users/change-password', { newPassword }),
 };
 
 // ============= PROJETS =============
@@ -141,9 +141,7 @@ export const fileAPI = {
 };
 
 export const chatAPI = {
-  ask: (question, history, context) => api.post('/api/chat/ask', { question, history, context }),
-  generateTestCase: (data) => api.post('/api/chat/generate-test-case', data),
-  generateAnomalie: (data) => api.post('/api/chat/generate-anomalie', data),
+  ask: (question) => api.post('/api/chatbot/ask', { question }),
 };
 
 export const reportAPI = {

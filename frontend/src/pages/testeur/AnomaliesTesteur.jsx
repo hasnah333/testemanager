@@ -136,12 +136,13 @@ export default function AnomaliesTesteur() {
     setIsGenerating(true);
     const loadingToast = toast.loading("L'IA génère la description...");
     try {
-      const { data } = await chatAPI.generateAnomalie({
-        titre: form.titre,
-        gravite: form.gravite
-      });
-      if (data.description) {
-        setForm(prev => ({ ...prev, description: data.description }));
+      const prompt = `Génère une description professionnelle pour une anomalie logicielle.
+Titre: ${form.titre}
+Gravité: ${form.gravite}
+Réponds avec uniquement la description, en 2-3 phrases claires.`;
+      const { data } = await chatAPI.ask(prompt);
+      if (data.answer) {
+        setForm(prev => ({ ...prev, description: data.answer }));
         toast.success("Description générée !");
       }
     } catch (err) {

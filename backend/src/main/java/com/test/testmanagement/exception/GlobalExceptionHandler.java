@@ -2,6 +2,7 @@ package com.test.testmanagement.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -52,6 +53,11 @@ public class GlobalExceptionHandler {
             message = "Nom d'utilisateur ou mot de passe incorrect";
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorBody(message));
+    }
+
+    @ExceptionHandler(OllamaServiceException.class)
+    public ResponseEntity<Map<String, Object>> handleOllama(OllamaServiceException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorBody(ex.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)

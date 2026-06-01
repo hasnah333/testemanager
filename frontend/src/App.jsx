@@ -25,6 +25,7 @@ import Scenarios from './pages/testeur/Scenarios';
 import CasDeTests from './pages/testeur/CasDeTests';
 import ManagerDashboard from './pages/manager/ManagerDashboard';
 import SearchResults from './pages/SearchResults';
+import MonCompte from './pages/MonCompte';
 
 // Composant racine : redirige selon le rôle
 function RootRedirect() {
@@ -76,6 +77,7 @@ export default function App() {
         <Route path="anomalies" element={<Anomalies />} />
         <Route path="rapports" element={<Rapports />} />
         <Route path="recherche" element={<SearchResults />} />
+        <Route path="mon-compte" element={<MonCompte />} />
       </Route>
 
       {/* === Espace TESTEUR === */}
@@ -97,6 +99,7 @@ export default function App() {
         <Route path="anomalies" element={<AnomaliesTesteur />} />
         <Route path="rapports" element={<Rapports />} />
         <Route path="recherche" element={<SearchResults />} />
+        <Route path="mon-compte" element={<MonCompte />} />
       </Route>
 
       {/* === Espace MANAGER === */}
@@ -114,6 +117,7 @@ export default function App() {
         <Route path="anomalies" element={<AnomaliesTesteur />} />
         <Route path="rapports" element={<Rapports />} />
         <Route path="recherche" element={<SearchResults />} />
+        <Route path="mon-compte" element={<MonCompte />} />
       </Route>
 
       {/* 404 */}

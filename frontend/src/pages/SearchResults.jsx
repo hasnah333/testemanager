@@ -11,6 +11,8 @@ import { getErrorMessage, formatGravite, formatStatut } from '../utils/helpers';
 export default function SearchResults() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  const basePath = user?.role === 'ADMIN' ? '/admin' : user?.role === 'MANAGER' ? '/manager' : '/testeur';
+  const testsPath = user?.role === 'TESTEUR' ? '/testeur/cas-de-tests' : `${basePath}/projets`;
   const query = searchParams.get('q') || '';
   const [results, setResults] = useState({ projets: [], tests: [], anomalies: [] });
   const [loading, setLoading] = useState(true);
@@ -62,7 +64,7 @@ export default function SearchResults() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {results.projets.map((p) => (
-                <Link key={p.id} to="/testeur/projets" className="card p-4 hover:border-primary-300 transition group">
+                <Link key={p.id} to={`${basePath}/projets`} className="card p-4 hover:border-primary-300 transition group">
                   <h3 className="font-semibold text-gray-800 group-hover:text-primary-600 transition">{p.nom}</h3>
                   <p className="text-sm text-gray-500 line-clamp-2 mt-1">{p.description || 'Pas de description'}</p>
                 </Link>
@@ -79,7 +81,7 @@ export default function SearchResults() {
             </h2>
             <div className="card divide-y divide-gray-100">
               {results.tests.map((t) => (
-                <Link key={t.id} to="/testeur/cas-de-tests" className="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
+                <Link key={t.id} to={testsPath} className="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
                   <div>
                     <h3 className="font-medium text-gray-800 group-hover:text-primary-600 transition">{t.titre}</h3>
                     <p className="text-[10px] font-bold text-gray-400">CT-{t.id}</p>
@@ -99,7 +101,7 @@ export default function SearchResults() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {results.anomalies.map((a) => (
-                <Link key={a.id} to="/testeur/anomalies" className="card p-4 hover:border-red-200 transition group">
+                <Link key={a.id} to={`${basePath}/anomalies`} className="card p-4 hover:border-red-200 transition group">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold text-gray-800 group-hover:text-red-600 transition">{a.titre}</h3>
                     <span className="text-[10px] px-1.5 py-0.5 bg-red-50 text-red-600 rounded border border-red-100 uppercase">

@@ -243,15 +243,18 @@ export default function CasDeTests() {
     setIsGenerating(true);
     const loadingToast = toast.loading("L'IA génère les détails du test...");
     try {
-      const { data } = await chatAPI.generateTestCase({
-        titre: formData.titre,
-        scenarioTitre: scenario?.titre || '',
-        scenarioDescription: scenario?.description || ''
-      });
+      const prompt = `Génère les détails d'un cas de test logiciel au format JSON strict.
+Titre du cas de test: ${formData.titre}
+Scénario: ${scenario?.titre || ''}
+Description scénario: ${scenario?.description || ''}
+Réponds UNIQUEMENT avec ce JSON (sans texte autour):
+{"description":"...","etapes":"...","resultatAttendu":"..."}`;
+      const { data } = await chatAPI.ask(prompt);
 
-      if (data.raw) {
+      if (data.answer) {
         try {
-          const parsed = JSON.parse(data.raw);
+          const jsonMatch = data.answer.match(/\{[\s\S]*\}/);
+          const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : data.answer);
           setFormData(prev => ({
             ...prev,
             description: parsed.description || prev.description,
@@ -260,7 +263,8 @@ export default function CasDeTests() {
           }));
           toast.success("Détails générés par l'IA !");
         } catch (e) {
-          toast.error("Erreur de formatage de l'IA. Réessayez.");
+          setFormData(prev => ({ ...prev, description: data.answer }));
+          toast.success("Détails générés par l'IA !");
         }
       }
     } catch (err) {

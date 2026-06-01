@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 export default function MesProjets() {
   const { user } = useAuth();
   const [projets, setProjets] = useState([]);
+  const modulesPath = user?.role === 'MANAGER' ? '/manager/sessions' : '/testeur/modules';
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function MesProjets() {
           {projets.map((p) => (
             <Link
               key={p.id}
-              to={`/testeur/projet/${p.id}`}
+              to={modulesPath}
               className="card p-5 hover:shadow-card-hover transition group"
             >
               <div className="flex items-start justify-between mb-3">

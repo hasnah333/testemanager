@@ -30,14 +30,8 @@ export default function ChatBot() {
     setIsLoading(true);
 
     try {
-      // Préparation de l'historique pour le backend
-      const history = messages.map(m => ({
-        role: m.role === 'bot' ? 'model' : 'user',
-        text: m.text
-      }));
-
-      const { data } = await chatAPI.ask(userMsg, history, "Tu es un expert en test logiciel (QA).");
-      setMessages(prev => [...prev, { role: 'bot', text: data.reply }]);
+      const { data } = await chatAPI.ask(userMsg);
+      setMessages(prev => [...prev, { role: 'bot', text: data.answer }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'bot', text: "Désolé, j'ai rencontré un problème technique. Vérifiez la configuration du backend." }]);
     } finally {
