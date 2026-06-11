@@ -1,11 +1,14 @@
 package com.test.testmanagement.dto;
 
+/** Réponse de POST /api/chat : { "reply": "..." } */
 public class ChatResponse {
-    private String answer;
+
+    private String reply;
 
     public ChatResponse() {}
-    public ChatResponse(String answer) { this.answer = answer; }
 
-    public String getAnswer() { return answer; }
-    public void setAnswer(String answer) { this.answer = answer; }
+    public ChatResponse(String reply) { this.reply = reply; }
+
+    public String getReply() { return reply; }
+    public void setReply(String reply) { this.reply = reply; }
 }

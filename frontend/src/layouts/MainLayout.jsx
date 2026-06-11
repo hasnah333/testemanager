@@ -315,7 +315,7 @@ export default function MainLayout() {
 
       </div>
 
-      {/* Chatbot flottant */}
+      {/* Assistant IA flottant */}
       <ChatBot />
 
     </div>

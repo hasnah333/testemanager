@@ -2,11 +2,12 @@ package com.test.testmanagement.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
+/** Corps de la requête POST /api/chat : { "message": "..." } */
 public class ChatRequest {
 
-    @NotBlank(message = "La question ne doit pas être vide")
-    private String question;
+    @NotBlank(message = "Le message ne doit pas être vide")
+    private String message;
 
-    public String getQuestion() { return question; }
-    public void setQuestion(String question) { this.question = question; }
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
 }

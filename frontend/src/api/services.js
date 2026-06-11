@@ -141,7 +141,8 @@ export const fileAPI = {
 };
 
 export const chatAPI = {
-  ask: (question) => api.post('/api/chatbot/ask', { question }),
+  // POST /api/chat  { message } -> { reply }
+  send: (message) => api.post('/api/chat', { message }),
 };
 
 export const reportAPI = {

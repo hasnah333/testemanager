@@ -20,3 +20,21 @@ build/
 
 # Logs
 *.log
+
+# UML diagrams (local only)
+diagramme-classes-image.html
+diagramme-classes-uml.html
+diagramme-classes-uml.svg
+diagrammes-uml-ai.html
+diagrammes-uml-conception.html
+generate-diagram.js
+package.json
+package-lock.json
+
+# Claude config
+.claude/
+
+# Data files
+chroma/
+chroma_data/
+OllamaSetup.exe

@@ -5,3 +5,9 @@ target/
 .project
 .settings/
 .gemini/
+
+# Secrets / variables d'environnement — ne jamais committer
+.env
+*.env
+application-local.properties
+application-secret.properties

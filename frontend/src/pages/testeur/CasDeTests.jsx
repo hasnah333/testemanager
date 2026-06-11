@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { FileText, Search, Plus, Pencil, Trash2, PlayCircle, Sparkles } from 'lucide-react';
+import { FileText, Search, Plus, Pencil, Trash2, PlayCircle } from 'lucide-react';
 import PageHeader from '../../components/PageHeader';
 import Modal from '../../components/Modal';
 import { PageLoader, EmptyState } from '../../components/Loaders';
-import { casDeTestAPI, projetAPI, scenarioAPI, moduleAPI, sessionAPI, executionAPI, chatAPI } from '../../api/services';
+import { casDeTestAPI, projetAPI, scenarioAPI, moduleAPI, sessionAPI, executionAPI } from '../../api/services';
 import { useAuth } from '../../context/AuthContext';
 import { getErrorMessage } from '../../utils/helpers';
 import toast from 'react-hot-toast';
@@ -226,56 +226,6 @@ export default function CasDeTests() {
       toast.error(getErrorMessage(err));
     }
   };
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleGenerateAI = async () => {
-    if (!formData.titre.trim()) {
-      toast.error("Veuillez d'abord saisir un titre pour guider l'IA");
-      return;
-    }
-    if (!formData.scenarioId) {
-      toast.error("Veuillez sélectionner un scénario");
-      return;
-    }
-
-    const scenario = scenarios.find(s => String(s.id) === String(formData.scenarioId));
-    
-    setIsGenerating(true);
-    const loadingToast = toast.loading("L'IA génère les détails du test...");
-    try {
-      const prompt = `Génère les détails d'un cas de test logiciel au format JSON strict.
-Titre du cas de test: ${formData.titre}
-Scénario: ${scenario?.titre || ''}
-Description scénario: ${scenario?.description || ''}
-Réponds UNIQUEMENT avec ce JSON (sans texte autour):
-{"description":"...","etapes":"...","resultatAttendu":"..."}`;
-      const { data } = await chatAPI.ask(prompt);
-
-      if (data.answer) {
-        try {
-          const jsonMatch = data.answer.match(/\{[\s\S]*\}/);
-          const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : data.answer);
-          setFormData(prev => ({
-            ...prev,
-            description: parsed.description || prev.description,
-            etapes: parsed.etapes || prev.etapes,
-            resultatAttendu: parsed.resultatAttendu || prev.resultatAttendu
-          }));
-          toast.success("Détails générés par l'IA !");
-        } catch (e) {
-          setFormData(prev => ({ ...prev, description: data.answer }));
-          toast.success("Détails générés par l'IA !");
-        }
-      }
-    } catch (err) {
-      toast.error("Échec de la génération IA");
-    } finally {
-      setIsGenerating(false);
-      toast.dismiss(loadingToast);
-    }
-  };
-
-
   const getPriorityStyles = (p) => {
     switch (p) {
       case 'CRITICAL': return 'bg-red-100 text-red-700 border-red-200';
@@ -453,27 +403,15 @@ Réponds UNIQUEMENT avec ce JSON (sans texte autour):
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="relative">
               <label className="form-label">Titre <span className="text-red-500">*</span></label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={formData.titre}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, titre: e.target.value }))}
-                  className="form-input"
-                  placeholder="Titre du cas de test"
-                  required
-                  autoFocus
-                />
-                <button
-                  type="button"
-                  onClick={handleGenerateAI}
-                  disabled={isGenerating || !formData.titre.trim()}
-                  className="btn-secondary px-3 flex items-center gap-1.5 whitespace-nowrap text-xs border-primary-200 text-primary-600 hover:bg-primary-50 disabled:opacity-50"
-                  title="Générer les étapes avec l'IA"
-                >
-                  <Sparkles size={14} className={isGenerating ? 'animate-spin' : ''} />
-                  IA
-                </button>
-              </div>
+              <input
+                type="text"
+                value={formData.titre}
+                onChange={(e) => setFormData((prev) => ({ ...prev, titre: e.target.value }))}
+                className="form-input"
+                placeholder="Titre du cas de test"
+                required
+                autoFocus
+              />
             </div>
             <div>
               <label className="form-label">Priorité</label>
