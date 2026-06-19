@@ -19,9 +19,18 @@ public class Anomalie {
     @Column(length = 2000)
     private String description;
 
+    // Sévérité FINALE (celle qui fait foi : choisie/validée par l'utilisateur).
+    // C'est ce champ qui joue le rôle de "finalSeverity".
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gravite gravite;
+
+    // Sévérité PRÉDITE par l'IA (informative ; peut différer de la sévérité finale).
+    @Enumerated(EnumType.STRING)
+    private Gravite predictedSeverity;
+
+    // Confiance de la prédiction IA (0..1), null si l'IA n'a pas été appelée.
+    private Double predictionConfidence;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -63,6 +72,12 @@ public class Anomalie {
 
     public Gravite getGravite() { return gravite; }
     public void setGravite(Gravite gravite) { this.gravite = gravite; }
+
+    public Gravite getPredictedSeverity() { return predictedSeverity; }
+    public void setPredictedSeverity(Gravite predictedSeverity) { this.predictedSeverity = predictedSeverity; }
+
+    public Double getPredictionConfidence() { return predictionConfidence; }
+    public void setPredictionConfidence(Double predictionConfidence) { this.predictionConfidence = predictionConfidence; }
 
     public StatutAnomalie getStatut() { return statut; }
     public void setStatut(StatutAnomalie statut) { this.statut = statut; }

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/><title>Diagram Viewer</title>
+<style>*{margin:0;padding:0}body{background:white;overflow:auto}</style>
+</head><body>
+<div id="content" style="padding:20px"></div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const file = params.get('f');
+if (file) {
+  fetch(file).then(r=>r.text()).then(svg=>{
+    document.getElementById('content').innerHTML = svg;
+  });
+}
+</script>
+</body></html>

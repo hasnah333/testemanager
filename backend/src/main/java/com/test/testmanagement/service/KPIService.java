@@ -52,7 +52,7 @@ public class KPIService {
         long testsReussis     = executionRepository.countByProjetIdAndStatus(projetId, ExecutionStatus.SUCCESS);
         long testsEchoues     = executionRepository.countByProjetIdAndStatus(projetId, ExecutionStatus.FAILED);
         long totalAnomalies   = anomalieRepository.countByProjetId(projetId);
-        long critiques        = anomalieRepository.countByProjetIdAndGraviteAndStatutNotFermee(projetId, Gravite.CRITIQUE);
+        long critiques        = anomalieRepository.countByProjetIdAndGraviteAndStatutNotFermee(projetId, Gravite.BLOQUANTE);
         double tauxReussite   = totalExecutions == 0 ? 0 : (testsReussis * 100.0) / totalExecutions;
 
         return new DashboardDTO(totalModules, totalScenarios, totalCas,
@@ -70,7 +70,7 @@ public class KPIService {
         long testsEchoues    = executionRepository.countByStatus(ExecutionStatus.FAILED);
         long totalAnomalies  = anomalieRepository.count();
         long anomaliesOuvertes = anomalieRepository.countByStatut(StatutAnomalie.OUVERTE);
-        long critiques       = anomalieRepository.countByGravite(Gravite.CRITIQUE);
+        long critiques       = anomalieRepository.countByGravite(Gravite.BLOQUANTE);
         double tauxReussite  = totalExecutions == 0 ? 0 : (testsReussis * 100.0) / totalExecutions;
 
         return new DashboardDTO(totalModules, totalScenarios, casDeTestRepository.count(),

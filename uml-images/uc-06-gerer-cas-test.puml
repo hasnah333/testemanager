@@ -1,0 +1,38 @@
+@startuml
+skinparam usecase {
+  BackgroundColor #D6EAF8
+  BorderColor #2E86C1
+  ArrowColor #2E86C1
+  ActorBorderColor #2E86C1
+}
+skinparam packageStyle rectangle
+skinparam shadowing true
+left to right direction
+
+title Diagramme de cas d'utilisation "Gerer les cas de test"
+
+actor "Testeur" as Testeur
+actor "Manager" as Manager
+
+rectangle "Gerer les cas de test" {
+  (UC 6: Gerer les\ncas de test) as UC6
+
+  (UC 6.1: Creer un\ncas de test) as UC61
+  (UC 6.2: Afficher les cas\nde test du scenario) as UC62
+  (UC 6.3: Modifier un\ncas de test) as UC63
+  (UC 6.4: Supprimer un\ncas de test) as UC64
+  (UC 6.5: Importer depuis\nfichier Excel) as UC65
+  (UC 6.6: Generer cas de\ntest avec IA) as UC66
+  (UC 6.2.1: Afficher details\nd'un cas de test) as UC621
+}
+
+Testeur --> UC6
+Manager --> UC6
+UC6 ..> UC61 : <<extend>>
+UC6 ..> UC62 : <<extend>>
+UC6 ..> UC63 : <<extend>>
+UC6 ..> UC64 : <<extend>>
+UC6 ..> UC65 : <<extend>>
+UC6 ..> UC66 : <<extend>>
+UC62 ..> UC621 : <<include>>
+@enduml

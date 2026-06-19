@@ -1,0 +1,38 @@
+@startuml
+skinparam usecase {
+  BackgroundColor #D6EAF8
+  BorderColor #2E86C1
+  ArrowColor #2E86C1
+  ActorBorderColor #2E86C1
+}
+skinparam packageStyle rectangle
+skinparam shadowing true
+left to right direction
+
+title Diagramme de cas d'utilisation "Gerer les utilisateurs"
+
+actor "Admin" as Admin
+
+rectangle "Gerer les utilisateurs" {
+  (UC 2: Gerer les\nutilisateurs) as UC2
+
+  (UC 2.1: Ajouter un\nutilisateur) as UC21
+  (UC 2.2: Afficher la liste\ndes utilisateurs) as UC22
+  (UC 2.3: Modifier un\nutilisateur) as UC23
+  (UC 2.4: Desactiver un\ncompte utilisateur) as UC24
+  (UC 2.5: Activer un\ncompte utilisateur) as UC25
+  (UC 2.6: Supprimer un\nutilisateur) as UC26
+  (UC 2.7: Lister les\ntesteurs) as UC27
+  (UC 2.2.1: Afficher details\nd'un utilisateur) as UC221
+}
+
+Admin --> UC2
+UC2 ..> UC21 : <<extend>>
+UC2 ..> UC22 : <<extend>>
+UC2 ..> UC23 : <<extend>>
+UC2 ..> UC24 : <<extend>>
+UC2 ..> UC25 : <<extend>>
+UC2 ..> UC26 : <<extend>>
+UC2 ..> UC27 : <<extend>>
+UC22 ..> UC221 : <<include>>
+@enduml

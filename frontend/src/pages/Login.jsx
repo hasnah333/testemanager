@@ -100,8 +100,6 @@ export default function Login() {
                 )}
               </button>
 
-
-
               {/* Forgot password */}
               <div className="text-center pt-2">
                 <a
@@ -122,7 +120,6 @@ export default function Login() {
           </div>
         </div>
 
-        {/* Hint pour les comptes test (à supprimer en prod) */}
         <p className="text-center text-xs text-gray-400 mt-6">
           Plateforme de gestion des tests · v1.0
         </p>

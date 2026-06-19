@@ -1,0 +1,49 @@
+graph TB
+    subgraph CLIENT["Frontend React - Port 5173"]
+        direction TB
+        subgraph AI_UI["Composants IA"]
+            GEN["GenerateurCasTestModal"]
+            BADGE["GraviteBadgeIA"]
+            RESUME["SessionResumePanel"]
+        end
+        subgraph PAGES["Pages"]
+            PA["Pages Admin"]
+            PT["Pages Testeur"]
+            PM["Pages Manager"]
+        end
+        API["Services API Axios"]
+    end
+
+    subgraph BACKEND["Backend Spring Boot - Port 8081"]
+        direction TB
+        SEC["Spring Security JWT"]
+        subgraph CTRL["Controleurs REST"]
+            C1["AuthController"]
+            C2["ProjetController"]
+            C3["ExecutionController"]
+            C4["AnomalieController"]
+            C5["AiController"]
+        end
+        subgraph SVC["Services"]
+            S1["AuthService"]
+            S2["ProjetService"]
+            S3["ExecutionService"]
+            S4["AiCasTestService"]
+            S5["SessionSummaryService"]
+            S6["AnomalieGraviteService"]
+            S7["OllamaChatbotService"]
+        end
+    end
+
+    subgraph EXTERNAL["Services Externes"]
+        DB[("MySQL 8 - testdb")]
+        CLOUD["Cloudinary CDN"]
+        OLLAMA["Ollama LLM - Port 11434"]
+    end
+
+    CLIENT -->|"HTTP REST + JWT"| BACKEND
+    SEC --> CTRL
+    CTRL --> SVC
+    SVC --> DB
+    S7 --> OLLAMA
+    S3 --> CLOUD

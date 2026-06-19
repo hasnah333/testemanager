@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+
+# Le modele (.pkl) et le dataset (.csv) sont VOLUMINEUX.
+# Ils sont gardes dans le repo pour ce projet, mais pensez a Git LFS si besoin.
+# Pour les ignorer, decommentez :
+# app/model/*.pkl
+# data/*.csv

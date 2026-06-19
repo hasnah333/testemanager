@@ -1,0 +1,128 @@
+@startuml
+skinparam usecase {
+  BackgroundColor #D6EAF8
+  BorderColor #2E86C1
+  ArrowColor #2E86C1
+  ActorBorderColor #2E86C1
+  ActorBackgroundColor #EBF5FB
+}
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing true
+left to right direction
+
+actor "Admin" as Admin
+actor "Manager" as Manager
+actor "Testeur" as Testeur
+
+rectangle "Systeme Test Management Platform" {
+
+  (S'authentifier) as UC_AUTH
+  (Gerer profil) as UC_PROFIL
+  (Changer mot de passe) as UC_PWD
+
+  (Gerer utilisateurs) as UC_USERS
+  (Creer projet) as UC_PROJ_C
+  (Modifier projet) as UC_PROJ_U
+  (Supprimer projet) as UC_PROJ_D
+  (Consulter projets) as UC_PROJ_R
+  (Archiver projet) as UC_ARCH
+  (Assigner membres) as UC_MEMBRES
+
+  (Valider projet) as UC_VALID
+
+  (Gerer modules) as UC_MOD
+  (Gerer scenarios) as UC_SCEN
+  (Gerer cas de test) as UC_CAS
+  (Importer cas depuis Excel) as UC_EXCEL
+
+  (Creer session de test) as UC_SESS
+  (Lancer execution) as UC_EXEC
+  (Mettre a jour statut) as UC_EXEC_U
+  (Joindre capture) as UC_CAPT
+  (Consulter sessions) as UC_SESS_R
+  (Consulter executions) as UC_EXEC_R
+
+  (Declarer anomalie) as UC_ANOM_C
+  (Changer statut anomalie) as UC_ANOM_S
+  (Consulter anomalies) as UC_ANOM_R
+  (Commenter anomalie) as UC_ANOM_COM
+
+  (Dashboard global) as UC_DASH_G
+  (Dashboard projet) as UC_DASH_P
+  (Generer rapport PDF) as UC_RAP
+  (Recherche globale) as UC_SEARCH
+  (Chatbot IA) as UC_CHAT
+  (Notifications) as UC_NOTIF
+}
+
+' ── ADMIN ──
+Admin --> UC_AUTH
+Admin --> UC_PROFIL
+Admin --> UC_PWD
+Admin --> UC_USERS
+Admin --> UC_PROJ_C
+Admin --> UC_PROJ_U
+Admin --> UC_PROJ_D
+Admin --> UC_PROJ_R
+Admin --> UC_ARCH
+Admin --> UC_MEMBRES
+Admin --> UC_ANOM_C
+Admin --> UC_ANOM_R
+Admin --> UC_DASH_G
+Admin --> UC_RAP
+Admin --> UC_SEARCH
+Admin --> UC_CHAT
+Admin --> UC_NOTIF
+
+' ── MANAGER ──
+Manager --> UC_AUTH
+Manager --> UC_PROFIL
+Manager --> UC_PWD
+Manager --> UC_PROJ_R
+Manager --> UC_VALID
+Manager --> UC_MOD
+Manager --> UC_SCEN
+Manager --> UC_CAS
+Manager --> UC_EXCEL
+Manager --> UC_SESS_R
+Manager --> UC_EXEC_R
+Manager --> UC_ANOM_R
+Manager --> UC_ANOM_S
+Manager --> UC_ANOM_COM
+Manager --> UC_DASH_G
+Manager --> UC_DASH_P
+Manager --> UC_RAP
+Manager --> UC_CHAT
+Manager --> UC_NOTIF
+
+' ── TESTEUR ──
+Testeur --> UC_AUTH
+Testeur --> UC_PROFIL
+Testeur --> UC_PWD
+Testeur --> UC_PROJ_R
+Testeur --> UC_MOD
+Testeur --> UC_SCEN
+Testeur --> UC_CAS
+Testeur --> UC_EXCEL
+Testeur --> UC_SESS
+Testeur --> UC_EXEC
+Testeur --> UC_EXEC_U
+Testeur --> UC_CAPT
+Testeur --> UC_ANOM_C
+Testeur --> UC_ANOM_R
+Testeur --> UC_ANOM_S
+Testeur --> UC_ANOM_COM
+Testeur --> UC_DASH_P
+Testeur --> UC_RAP
+Testeur --> UC_SEARCH
+Testeur --> UC_CHAT
+Testeur --> UC_NOTIF
+
+' ── Include ──
+UC_USERS ..> UC_AUTH : <<include>>
+UC_PROJ_C ..> UC_AUTH : <<include>>
+UC_EXEC ..> UC_AUTH : <<include>>
+UC_VALID ..> UC_AUTH : <<include>>
+
+@enduml

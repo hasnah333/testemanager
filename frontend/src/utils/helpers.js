@@ -21,9 +21,9 @@ export const formatDateTime = (dateStr) => {
 // Badge style pour Gravité
 export const getGraviteColor = (gravite) => {
   switch (gravite) {
-    case 'CRITIQUE': return 'bg-red-100 text-red-700 border-red-200';
-    case 'MOYENNE': return 'bg-amber-100 text-amber-700 border-amber-200';
-    case 'FAIBLE': return 'bg-blue-100 text-blue-700 border-blue-200';
+    case 'BLOQUANTE': return 'bg-red-100 text-red-700 border-red-200';
+    case 'MAJEURE': return 'bg-amber-100 text-amber-700 border-amber-200';
+    case 'MINEURE': return 'bg-blue-100 text-blue-700 border-blue-200';
     default: return 'bg-gray-100 text-gray-600 border-gray-200';
   }
 };
@@ -79,5 +79,5 @@ export const formatExecStatus = (s) => ({
 }[s] || s);
 
 export const formatGravite = (g) => ({
-  FAIBLE: 'Faible', MOYENNE: 'Moyenne', CRITIQUE: 'Critique',
+  BLOQUANTE: 'Bloquante', MAJEURE: 'Majeure', MINEURE: 'Mineure',
 }[g] || g);

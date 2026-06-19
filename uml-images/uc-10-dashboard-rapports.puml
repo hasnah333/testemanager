@@ -1,0 +1,50 @@
+@startuml
+skinparam usecase {
+  BackgroundColor #D6EAF8
+  BorderColor #2E86C1
+  ArrowColor #2E86C1
+  ActorBorderColor #2E86C1
+}
+skinparam packageStyle rectangle
+skinparam shadowing true
+left to right direction
+
+title Diagramme de cas d'utilisation "Dashboard et Rapports"
+
+actor "Admin" as Admin
+actor "Manager" as Manager
+actor "Testeur" as Testeur
+
+rectangle "Dashboard et Rapports" {
+  (UC 10: Consulter le\ntableau de bord) as UC10
+
+  (UC 10.1: Voir le dashboard\nglobal) as UC101
+  (UC 10.2: Voir les KPIs\nd'un projet) as UC102
+  (UC 10.3: Generer un\nrapport PDF) as UC103
+  (UC 10.4: Recherche\nglobale) as UC104
+  (UC 10.5: Consulter les\narchives) as UC105
+  (UC 10.6: Voir les KPIs\nglobaux) as UC106
+}
+
+Admin --> UC10
+Manager --> UC10
+Testeur --> UC10
+
+UC10 ..> UC102 : <<extend>>
+UC10 ..> UC103 : <<extend>>
+UC10 ..> UC104 : <<extend>>
+
+Admin --> UC101
+Admin --> UC105
+Admin --> UC106
+
+Manager --> UC101
+Manager --> UC106
+
+Testeur --> UC102
+Testeur --> UC104
+
+note right of UC101 : Admin + Manager\nuniquement
+note right of UC106 : Admin + Manager\nuniquement
+note right of UC105 : Admin uniquement
+@enduml

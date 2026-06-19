@@ -1,0 +1,34 @@
+sequenceDiagram
+    actor T as Testeur
+    participant F as Frontend
+    participant SC as SessionController
+    participant EC as ExecutionController
+    participant AN as AnomalieController
+    participant ES as ExecutionService
+    participant NS as NotificationService
+    participant DB as Base de Donnees
+
+    T->>F: Cree une session de test
+    F->>SC: POST /api/sessions
+    SC->>DB: save SessionTest OUVERTE
+    DB-->>SC: SessionTest creee
+    SC-->>F: 201 Created
+
+    T->>F: Lance execution cas de test
+    F->>EC: POST /api/executions
+    EC->>ES: lancer ExecutionDTO
+    ES->>DB: save Execution PENDING
+    ES-->>EC: Execution
+    EC-->>F: 201 Created
+
+    T->>F: Marque execution FAILED
+    F->>EC: PATCH /api/executions/id
+    EC->>DB: updateStatus FAILED
+    EC-->>F: 200 OK
+
+    T->>F: Declare une anomalie CRITIQUE
+    F->>AN: POST /api/anomalies
+    AN->>DB: save Anomalie OUVERTE
+    AN->>NS: notifier anomalie critique
+    NS->>DB: save Notification Admin+Manager
+    AN-->>F: 201 Created

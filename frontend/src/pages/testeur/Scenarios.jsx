@@ -247,6 +247,9 @@ export default function Scenarios() {
                   <button className="btn-icon" onClick={() => openEditModal(s)} title="Modifier">
                     <Pencil className="w-4 h-4" />
                   </button>
+                  <button className="btn-icon text-red-600 hover:bg-red-50" onClick={() => handleDelete(s)} title="Supprimer">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
               <p className="text-sm text-gray-600 line-clamp-2">{s.objectif || s.description || 'Aucun objectif renseigné'}</p>

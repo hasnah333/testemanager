@@ -54,6 +54,8 @@ export const kpiAPI = {
 // ============= ANOMALIES =============
 export const anomalieAPI = {
   declarer: (data) => api.post('/api/anomalies', data),
+  // Aperçu IA : prédit la sévérité sans rien enregistrer
+  predictSeverity: (data) => api.post('/api/anomalies/predict-severity', data),
   getAll: () => api.get('/api/anomalies'),
   getByProjet: (projetId) => api.get(`/api/anomalies/projet/${projetId}`),
   getByExecution: (executionId) => api.get(`/api/anomalies/execution/${executionId}`),

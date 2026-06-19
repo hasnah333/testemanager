@@ -1,0 +1,50 @@
+@startuml
+skinparam usecase {
+  BackgroundColor #D6EAF8
+  BorderColor #2E86C1
+  ArrowColor #2E86C1
+  ActorBorderColor #2E86C1
+}
+skinparam packageStyle rectangle
+skinparam shadowing true
+left to right direction
+
+title Diagramme de cas d'utilisation "Gerer les anomalies"
+
+actor "Testeur" as Testeur
+actor "Admin" as Admin
+actor "Manager" as Manager
+
+rectangle "Gerer les anomalies" {
+  (UC 9: Gerer les\nanomalies) as UC9
+
+  (UC 9.1: Declarer une\nanomalie) as UC91
+  (UC 9.2: Afficher la liste\ndes anomalies) as UC92
+  (UC 9.3: Modifier une\nanomalie) as UC93
+  (UC 9.4: Changer le statut\nd'une anomalie) as UC94
+  (UC 9.5: Commenter une\nanomalie) as UC95
+  (UC 9.6: Supprimer une\nanomalie) as UC96
+  (UC 9.7: Suggerer gravite\nautomatique IA) as UC97
+  (UC 9.2.1: Afficher details\nd'une anomalie) as UC921
+}
+
+Testeur --> UC9
+Admin --> UC9
+Admin --> UC96
+
+UC9 ..> UC91 : <<extend>>
+UC9 ..> UC92 : <<extend>>
+UC9 ..> UC93 : <<extend>>
+UC9 ..> UC94 : <<extend>>
+UC9 ..> UC95 : <<extend>>
+UC91 ..> UC97 : <<include>>
+UC92 ..> UC921 : <<include>>
+
+Manager --> UC92
+Manager --> UC94
+Manager --> UC95
+
+note right of UC91 : Testeur et Admin\nuniquement
+note right of UC96 : Admin uniquement
+note bottom of Manager : Manager ne peut pas\ndeclarer ni supprimer\n(statut + commentaire seulement)
+@enduml

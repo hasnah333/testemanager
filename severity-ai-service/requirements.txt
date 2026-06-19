@@ -1,0 +1,16 @@
+# ===== Microservice IA de prediction de severite =====
+# IMPORTANT : scikit-learn DOIT etre en 1.6.1 (version d'entrainement du modele).
+# Avec une autre version (ex: 1.3.2) le modele leve "NotFittedError: idf vector is not fitted".
+
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.2
+
+scikit-learn==1.6.1
+scipy==1.17.1
+numpy==2.4.6
+joblib==1.5.3
+threadpoolctl==3.6.0
+xgboost==3.2.0
+
+python-dotenv==1.2.2

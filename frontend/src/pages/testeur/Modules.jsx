@@ -215,6 +215,9 @@ export default function Modules() {
                   <button className="btn-icon" onClick={() => openEditModal(m)} title="Modifier">
                     <Pencil className="w-4 h-4" />
                   </button>
+                  <button className="btn-icon text-red-600 hover:bg-red-50" onClick={() => handleDelete(m)} title="Supprimer">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
               <p className="text-sm text-gray-600 line-clamp-2">{m.description || 'Aucune description disponible'}</p>

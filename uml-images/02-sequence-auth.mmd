@@ -1,0 +1,26 @@
+sequenceDiagram
+    actor U as Utilisateur
+    participant F as Frontend React
+    participant AC as AuthController
+    participant AS as AuthService
+    participant JWT as JwtService
+    participant DB as Base de Donnees
+
+    U->>F: Saisit username + password
+    F->>AC: POST /api/auth/login
+    AC->>AS: login(username, password)
+    AS->>DB: findByUsername(username)
+    DB-->>AS: User entity
+    AS->>AS: verifier mot de passe BCrypt
+    alt Mot de passe invalide
+        AS-->>AC: throw BadCredentialsException
+        AC-->>F: 401 Unauthorized
+        F-->>U: Message erreur
+    else Mot de passe valide
+        AS->>JWT: generateToken(userDetails)
+        JWT-->>AS: JWT token 24h
+        AS-->>AC: token + role + userId
+        AC-->>F: 200 OK
+        F->>F: Stocke token localStorage
+        F-->>U: Redirige vers dashboard
+    end

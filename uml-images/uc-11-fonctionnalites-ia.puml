@@ -1,0 +1,39 @@
+@startuml
+skinparam usecase {
+  BackgroundColor #D6EAF8
+  BorderColor #2E86C1
+  ArrowColor #2E86C1
+  ActorBorderColor #2E86C1
+}
+skinparam packageStyle rectangle
+skinparam shadowing true
+left to right direction
+
+title Diagramme de cas d'utilisation "Fonctionnalites IA"
+
+actor "Testeur" as Testeur
+actor "Manager" as Manager
+actor "Admin" as Admin
+
+rectangle "Fonctionnalites IA (Ollama)" {
+  (UC 11: Utiliser les\nfonctionnalites IA) as UC11
+
+  (UC 11.1: Generer des cas\nde test automatiquement) as UC111
+  (UC 11.2: Generer un resume\nintelligent de session) as UC112
+  (UC 11.3: Obtenir une suggestion\nde gravite d'anomalie) as UC113
+  (UC 11.4: Interroger le\nchatbot IA) as UC114
+  (UC 11.5: Verifier la\ndisponibilite du LLM) as UC115
+}
+
+Testeur --> UC11
+Admin --> UC11
+Manager --> UC11
+UC11 ..> UC111 : <<extend>>
+UC11 ..> UC112 : <<extend>>
+UC11 ..> UC113 : <<extend>>
+UC11 ..> UC114 : <<extend>>
+UC111 ..> UC115 : <<include>>
+UC112 ..> UC115 : <<include>>
+UC113 ..> UC115 : <<include>>
+UC114 ..> UC115 : <<include>>
+@enduml

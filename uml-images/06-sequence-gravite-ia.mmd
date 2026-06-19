@@ -1,0 +1,28 @@
+sequenceDiagram
+    actor T as Testeur
+    participant F as Formulaire Anomalie
+    participant AC as AiController
+    participant AGS as AnomalieGraviteService
+    participant OL as OllamaChatbotService
+    participant LLM as Ollama LLM
+    participant AN as AnomalieController
+    participant DB as Base de Donnees
+
+    T->>F: Saisit titre anomalie
+    T->>F: Saisit description
+    Note over F: Debounce 800ms
+    F->>AC: POST /api/ai/suggerer-gravite
+    AC->>AGS: suggererAvecConfiance(titre, desc)
+    AGS->>OL: sendMessage(prompt)
+    OL->>LLM: POST /api/generate
+    LLM-->>OL: CRITIQUE perte de donnees
+    OL-->>AGS: String reponse
+    AGS->>AGS: parseGravite + calculerConfiance
+    AGS-->>AC: GravitePrediction CRITIQUE 92%
+    AC-->>F: 200 OK graviteSuggeree CRITIQUE
+    F->>F: Affiche badge IA suggere CRITIQUE 92%
+    T->>F: Accepte ou modifie la gravite
+    T->>F: Soumet le formulaire
+    F->>AN: POST /api/anomalies
+    AN->>DB: save Anomalie
+    AN-->>F: 201 Created

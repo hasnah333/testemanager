@@ -69,7 +69,7 @@ public class DashboardService {
                 .flatMap(s -> s.getCasDeTests().stream())
                 .flatMap(c -> c.getExecutions().stream())
                 .flatMap(e -> e.getAnomalies().stream())
-                .filter(a -> a.getGravite() == com.test.testmanagement.enums.Gravite.CRITIQUE && a.getStatut() != com.test.testmanagement.enums.StatutAnomalie.FERMEE)
+                .filter(a -> a.getGravite() == com.test.testmanagement.enums.Gravite.BLOQUANTE && a.getStatut() != com.test.testmanagement.enums.StatutAnomalie.FERMEE)
                 .count();
         double tauxReussite = totalExecutions == 0 ? 0 : (testsReussis * 100.0) / totalExecutions;
         return new DashboardDTO(totalModules, totalScenarios, totalCas,

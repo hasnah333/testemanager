@@ -1,9 +1,11 @@
 package com.test.testmanagement.controller;
 
 import com.test.testmanagement.dto.AnomalieDTO;
+import com.test.testmanagement.dto.SeverityPredictionRequest;
 import com.test.testmanagement.entity.Anomalie;
 import com.test.testmanagement.enums.StatutAnomalie;
 import com.test.testmanagement.service.AnomalieService;
+import com.test.testmanagement.service.SeverityPredictionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,15 +15,39 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/anomalies")
 public class AnomalieController {
 
     private final AnomalieService anomalieService;
+    private final SeverityPredictionService severityPredictionService;
 
-    public AnomalieController(AnomalieService anomalieService) {
+    public AnomalieController(AnomalieService anomalieService,
+                              SeverityPredictionService severityPredictionService) {
         this.anomalieService = anomalieService;
+        this.severityPredictionService = severityPredictionService;
+    }
+
+    /**
+     * Aperçu : prédit la sévérité SANS rien enregistrer.
+     * Appelé par le formulaire React pour proposer une gravité que l'utilisateur
+     * peut accepter ou modifier avant de déclarer l'anomalie.
+     */
+    @PostMapping("/predict-severity")
+    @PreAuthorize("hasRole('TESTEUR') or hasRole('ADMIN') or hasRole('MANAGER')")
+    public ResponseEntity<?> predictSeverity(@RequestBody SeverityPredictionRequest req) {
+        if (req.getTitre() == null || req.getTitre().isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Le titre est obligatoire pour prédire la sévérité"));
+        }
+        try {
+            return ResponseEntity.ok(severityPredictionService.predict(req));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of("message", "Le service de prédiction IA est momentanément indisponible"));
+        }
     }
 
     @PostMapping

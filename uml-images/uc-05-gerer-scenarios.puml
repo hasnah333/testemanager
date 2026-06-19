@@ -1,0 +1,34 @@
+@startuml
+skinparam usecase {
+  BackgroundColor #D6EAF8
+  BorderColor #2E86C1
+  ArrowColor #2E86C1
+  ActorBorderColor #2E86C1
+}
+skinparam packageStyle rectangle
+skinparam shadowing true
+left to right direction
+
+title Diagramme de cas d'utilisation "Gerer les scenarios"
+
+actor "Testeur" as Testeur
+actor "Manager" as Manager
+
+rectangle "Gerer les scenarios" {
+  (UC 5: Gerer les\nscenarios) as UC5
+
+  (UC 5.1: Creer un\nscenario) as UC51
+  (UC 5.2: Afficher les\nscenarios du module) as UC52
+  (UC 5.3: Modifier un\nscenario) as UC53
+  (UC 5.4: Supprimer un\nscenario) as UC54
+  (UC 5.2.1: Afficher details\nd'un scenario) as UC521
+}
+
+Testeur --> UC5
+Manager --> UC5
+UC5 ..> UC51 : <<extend>>
+UC5 ..> UC52 : <<extend>>
+UC5 ..> UC53 : <<extend>>
+UC5 ..> UC54 : <<extend>>
+UC52 ..> UC521 : <<include>>
+@enduml

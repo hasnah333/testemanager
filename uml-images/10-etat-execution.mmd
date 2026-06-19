@@ -1,0 +1,14 @@
+stateDiagram-v2
+    [*] --> PENDING : Testeur lance execution
+
+    PENDING --> SUCCESS : Test reussi
+    PENDING --> FAILED : Test echoue
+    PENDING --> BLOCKED : Prerequis manquant
+
+    SUCCESS --> FAILED : Re-execution echec
+    FAILED --> SUCCESS : Correction reussie
+    BLOCKED --> PENDING : Prerequis resolu
+
+    FAILED --> [*] : Session cloturee
+    SUCCESS --> [*] : Session cloturee
+    BLOCKED --> [*] : Session cloturee

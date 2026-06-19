@@ -84,7 +84,7 @@ public class RagContextService {
             long nbSessions = sessionTestRepository.countByProjetId(pid);
             long nbAno      = anomalieRepository.countByProjetId(pid);
             long anoOuvertes = anomalieRepository.countByProjetIdAndStatut(pid, StatutAnomalie.OUVERTE);
-            long anoCritiques = anomalieRepository.countByProjetIdAndGraviteAndStatutNotFermee(pid, Gravite.CRITIQUE);
+            long anoBloquantes = anomalieRepository.countByProjetIdAndGraviteAndStatutNotFermee(pid, Gravite.BLOQUANTE);
 
             sb.append("• Projet « ").append(p.getNom()).append(" » (statut : ").append(p.getStatus().name())
               .append(p.isArchived() ? ", archivé" : "").append(")\n");
@@ -96,7 +96,7 @@ public class RagContextService {
               .append(" | Sessions : ").append(nbSessions)
               .append(" | Anomalies : ").append(nbAno)
               .append(" (ouvertes : ").append(anoOuvertes)
-              .append(", critiques non fermées : ").append(anoCritiques).append(")\n");
+              .append(", bloquantes non fermées : ").append(anoBloquantes).append(")\n");
 
             List<Anomalie> anomalies = anomalieRepository.findByProjetId(pid);
             int a = 0;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bug, Plus, Edit2, MessageSquare, Trash2 } from 'lucide-react';
+import { Bug, Plus, Edit2, MessageSquare, Trash2, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageHeader from '../../components/PageHeader';
 import Modal from '../../components/Modal';
@@ -24,10 +24,15 @@ export default function AnomaliesTesteur() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({
-    titre: '', description: '', gravite: 'MOYENNE', executionId: '',
+    titre: '', description: '', gravite: 'MAJEURE', executionId: '',
+    priorite: 'Major', typeAnomalie: 'Bug',
   });
   const [selectedFile, setSelectedFile] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Prédiction IA de la sévérité
+  const [prediction, setPrediction] = useState(null);
+  const [predicting, setPredicting] = useState(false);
 
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState(null);
@@ -72,8 +77,12 @@ export default function AnomaliesTesteur() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ titre: '', description: '', gravite: 'MOYENNE', executionId: executions[0]?.id || '' });
+    setForm({
+      titre: '', description: '', gravite: 'MAJEURE', executionId: executions[0]?.id || '',
+      priorite: 'Major', typeAnomalie: 'Bug',
+    });
     setSelectedFile(null);
+    setPrediction(null);
     setModalOpen(true);
   };
 
@@ -84,9 +93,35 @@ export default function AnomaliesTesteur() {
       description: a.description || '',
       gravite: a.gravite,
       executionId: a.execution?.id || '',
+      priorite: 'Major', typeAnomalie: 'Bug',
     });
     setSelectedFile(null);
+    setPrediction(null);
     setModalOpen(true);
+  };
+
+  // Demande à l'IA une suggestion de sévérité (sans rien enregistrer)
+  const handlePredict = async () => {
+    if (!form.titre.trim()) {
+      toast.error('Saisissez au moins le titre pour la suggestion IA');
+      return;
+    }
+    setPredicting(true);
+    try {
+      const projetNom = projets.find((p) => String(p.id) === String(selectedProjet))?.nom || '';
+      const { data } = await anomalieAPI.predictSeverity({
+        titre: form.titre,
+        description: form.description,
+        priorite: form.priorite,
+        type_anomalie: form.typeAnomalie,
+        module: projetNom,
+      });
+      setPrediction(data);
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Prédiction IA indisponible'));
+    } finally {
+      setPredicting(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -97,12 +132,17 @@ export default function AnomaliesTesteur() {
     }
     setSubmitting(true);
     try {
+      const projetNom = projets.find((p) => String(p.id) === String(selectedProjet))?.nom || '';
       const payload = {
         titre: form.titre,
         description: form.description,
         gravite: form.gravite,
         executionId: parseInt(form.executionId),
-        urlCapture: editing?.urlCapture || null
+        urlCapture: editing?.urlCapture || null,
+        // Champs envoyés pour que le serveur recalcule/stocke la sévérité prédite
+        priorite: form.priorite,
+        typeAnomalie: form.typeAnomalie,
+        module: projetNom,
       };
 
       if (selectedFile) {
@@ -245,7 +285,15 @@ export default function AnomaliesTesteur() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`badge border ${getGraviteColor(a.gravite)}`}>{formatGravite(a.gravite)}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className={`badge border ${getGraviteColor(a.predictedSeverity || a.gravite)}`}>{formatGravite(a.predictedSeverity || a.gravite)}</span>
+                        {a.predictedSeverity && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] text-indigo-400" title="Détecté par l'IA">
+                            <Sparkles className="w-3 h-3" />
+                            {a.predictionConfidence != null ? `${Math.round(a.predictionConfidence * 100)}%` : ''}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <span className={`badge border ${getStatutColor(a.statut)}`}>{formatStatut(a.statut)}</span>
@@ -298,6 +346,83 @@ export default function AnomaliesTesteur() {
               placeholder="Étapes pour reproduire, comportement attendu vs observé..."
             />
           </div>
+
+          {/* Priorité + Type : utilisés par l'IA pour la suggestion */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="form-label">Priorité</label>
+              <select
+                value={form.priorite}
+                onChange={(e) => setForm({ ...form, priorite: e.target.value })}
+                className="form-input"
+              >
+                <option value="Blocker">Blocker</option>
+                <option value="Critical">Critical</option>
+                <option value="Major">Major</option>
+                <option value="Minor">Minor</option>
+                <option value="Trivial">Trivial</option>
+              </select>
+            </div>
+            <div>
+              <label className="form-label">Type d'anomalie</label>
+              <select
+                value={form.typeAnomalie}
+                onChange={(e) => setForm({ ...form, typeAnomalie: e.target.value })}
+                className="form-input"
+              >
+                <option value="Bug">Bug</option>
+                <option value="Improvement">Amélioration</option>
+                <option value="Task">Tâche</option>
+                <option value="New Feature">Nouvelle fonctionnalité</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Suggestion IA de la sévérité (l'utilisateur reste libre de la modifier) */}
+          <div className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-indigo-700">
+                <Sparkles className="w-4 h-4" />
+                Sévérité suggérée par l'IA
+              </div>
+              <button
+                type="button"
+                onClick={handlePredict}
+                disabled={predicting || !form.titre.trim()}
+                className="btn-secondary text-xs"
+              >
+                {predicting && <Spinner size="sm" />}
+                {predicting ? 'Analyse...' : 'Suggérer'}
+              </button>
+            </div>
+            {prediction && (
+              <div className="mt-3 flex items-center gap-3 flex-wrap">
+                <span className={`badge border ${getGraviteColor(prediction.severity)}`}>
+                  {formatGravite(prediction.severity)}
+                </span>
+                {prediction.confidence != null && (
+                  <span className="text-xs text-gray-500">
+                    Confiance : {Math.round(prediction.confidence * 100)}%
+                  </span>
+                )}
+                {form.gravite !== prediction.severity ? (
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, gravite: prediction.severity })}
+                    className="text-xs font-medium text-indigo-600 hover:underline"
+                  >
+                    Appliquer cette sévérité
+                  </button>
+                ) : (
+                  <span className="text-xs font-medium text-emerald-600">✓ Appliquée à la gravité</span>
+                )}
+              </div>
+            )}
+            <p className="mt-2 text-[11px] text-gray-400">
+              Suggestion indicative : vous choisissez la gravité finale ci-dessous.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="form-label">Gravité *</label>
@@ -306,9 +431,9 @@ export default function AnomaliesTesteur() {
                 onChange={(e) => setForm({ ...form, gravite: e.target.value })}
                 className="form-input"
               >
-                <option value="FAIBLE">Faible</option>
-                <option value="MOYENNE">Moyenne</option>
-                <option value="CRITIQUE">Critique</option>
+                <option value="BLOQUANTE">Bloquante</option>
+                <option value="MAJEURE">Majeure</option>
+                <option value="MINEURE">Mineure</option>
               </select>
             </div>
             <div>
@@ -359,6 +484,12 @@ export default function AnomaliesTesteur() {
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <span className={`badge border ${getGraviteColor(selected.gravite)}`}>{formatGravite(selected.gravite)}</span>
                 <span className={`badge border ${getStatutColor(selected.statut)}`}>{formatStatut(selected.statut)}</span>
+                {selected.predictedSeverity && (
+                  <span className="text-xs text-indigo-600 inline-flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> IA : {formatGravite(selected.predictedSeverity)}
+                    {selected.predictionConfidence != null && ` (${Math.round(selected.predictionConfidence * 100)}%)`}
+                  </span>
+                )}
                 <span className="text-xs text-gray-500">{formatDateTime(selected.dateCreation)}</span>
               </div>
             </div>

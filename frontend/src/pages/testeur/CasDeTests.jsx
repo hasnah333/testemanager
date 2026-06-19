@@ -17,6 +17,7 @@ export default function CasDeTests() {
   const [scenarios, setScenarios] = useState([]);
   const [modules, setModules] = useState([]);
   const [search, setSearch] = useState('');
+  const [filterScenario, setFilterScenario] = useState(''); // '' = tous les scénarios
   const [loading, setLoading] = useState(true);
   const [loadingCases, setLoadingCases] = useState(false);
 
@@ -238,13 +239,14 @@ export default function CasDeTests() {
 
   const filtered = casDeTests.filter((c) => {
     const query = search.toLowerCase();
-    return (
+    const matchSearch =
       !query ||
       c.titre?.toLowerCase().includes(query) ||
       c.nom?.toLowerCase().includes(query) ||
       c.description?.toLowerCase().includes(query) ||
-      c.scenarioTitre?.toLowerCase().includes(query)
-    );
+      c.scenarioTitre?.toLowerCase().includes(query);
+    const matchScenario = !filterScenario || String(c.scenarioId) === String(filterScenario);
+    return matchSearch && matchScenario;
   });
 
   if (loading) return <PageLoader />;
@@ -254,15 +256,27 @@ export default function CasDeTests() {
       <PageHeader title="Cas de test" subtitle="Gestion des cas de test par projet" />
 
       <div className="card p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <select
             value={selectedProjet}
-            onChange={(e) => setSelectedProjet(e.target.value)}
+            onChange={(e) => { setSelectedProjet(e.target.value); setFilterScenario(''); }}
             className="form-input"
           >
             {projets.length === 0 && <option value="">Aucun projet</option>}
             {projets.map((p) => (
               <option key={p.id} value={String(p.id)}>{p.nom}</option>
+            ))}
+          </select>
+          <select
+            value={filterScenario}
+            onChange={(e) => setFilterScenario(e.target.value)}
+            className="form-input"
+            disabled={scenarios.length === 0}
+            title="Filtrer par scénario"
+          >
+            <option value="">Tous les scénarios</option>
+            {scenarios.map((s) => (
+              <option key={s.id} value={String(s.id)}>{s.titre || s.nom}</option>
             ))}
           </select>
           <div className="relative md:col-span-2">
@@ -344,6 +358,9 @@ export default function CasDeTests() {
                       </button>
                       <button className="btn-icon" onClick={() => openEditModal(c)} title="Modifier">
                         <Pencil className="w-4 h-4" />
+                      </button>
+                      <button className="btn-icon text-red-600 hover:bg-red-50" onClick={() => handleDelete(c)} title="Supprimer">
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>

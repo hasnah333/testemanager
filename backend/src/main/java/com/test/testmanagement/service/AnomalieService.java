@@ -1,6 +1,7 @@
 package com.test.testmanagement.service;
 
 import com.test.testmanagement.dto.AnomalieDTO;
+import com.test.testmanagement.dto.SeverityPredictionRequest;
 import com.test.testmanagement.entity.Anomalie;
 import com.test.testmanagement.entity.Execution;
 import com.test.testmanagement.entity.User;
@@ -24,17 +25,47 @@ public class AnomalieService {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final MembreProjetRepository membreProjetRepository;
+    private final SeverityPredictionService severityPredictionService;
 
     public AnomalieService(AnomalieRepository anomalieRepository,
                            ExecutionRepository executionRepository,
                            NotificationService notificationService,
                            UserRepository userRepository,
-                           MembreProjetRepository membreProjetRepository) {
+                           MembreProjetRepository membreProjetRepository,
+                           SeverityPredictionService severityPredictionService) {
         this.anomalieRepository = anomalieRepository;
         this.executionRepository = executionRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.membreProjetRepository = membreProjetRepository;
+        this.severityPredictionService = severityPredictionService;
+    }
+
+    /**
+     * Renseigne la sévérité PRÉDITE par l'IA + la confiance sur l'anomalie.
+     * Best-effort : si l'IA est indisponible, l'anomalie est enregistrée sans prédiction.
+     * Ne touche PAS à {@code gravite} (la sévérité finale reste le choix de l'utilisateur).
+     */
+    private void applyPrediction(Anomalie anomalie, AnomalieDTO dto) {
+        SeverityPredictionRequest req = new SeverityPredictionRequest();
+        req.setTitre(dto.getTitre());
+        req.setDescription(dto.getDescription());
+        req.setPriorite(dto.getPriorite());
+        req.setModule(dto.getModule());
+        req.setTypeAnomalie(dto.getTypeAnomalie());
+        req.setImpact(dto.getImpact());
+        req.setEnvironnement(dto.getEnvironnement());
+        req.setEtapesReproduction(dto.getEtapesReproduction());
+        req.setStatut("Open");
+
+        severityPredictionService.predictQuietly(req).ifPresent(resp -> {
+            try {
+                anomalie.setPredictedSeverity(Gravite.valueOf(resp.getSeverity()));
+            } catch (IllegalArgumentException | NullPointerException ignored) {
+                // libellé inattendu renvoyé par l'IA -> on ignore, sans planter
+            }
+            anomalie.setPredictionConfidence(resp.getConfidence());
+        });
     }
 
     /**
@@ -51,15 +82,18 @@ public class AnomalieService {
         anomalie.setExecution(execution);
         anomalie.setUrlCapture(dto.getUrlCapture());
 
+        // Prédiction IA (best-effort : ne bloque jamais la création)
+        applyPrediction(anomalie, dto);
+
         Anomalie saved = anomalieRepository.save(anomalie);
 
         User actor = userRepository.findByUsername(username).orElse(null);
 
         // Notification pour toute anomalie, avec préfixe spécifique pour les critiques
-        String prefix = saved.getGravite() == Gravite.CRITIQUE ? "⚠️ Alerte : Une anomalie CRITIQUE" : "🐞 Nouvelle anomalie (" + saved.getGravite() + ")";
+        String prefix = saved.getGravite() == Gravite.BLOQUANTE ? "⚠️ Alerte : Une anomalie BLOQUANTE" : "🐞 Nouvelle anomalie (" + saved.getGravite() + ")";
         String msg = prefix + " a été déclarée sur le projet "
                      + execution.getSessionTest().getProjet().getNom() + " : " + saved.getTitre();
-        notificationService.notifyProjectMembersExcept(execution.getSessionTest().getProjet(), actor, msg, saved.getGravite() == Gravite.CRITIQUE ? "CRITICAL_ANOMALY" : "NEW_ANOMALY");
+        notificationService.notifyProjectMembersExcept(execution.getSessionTest().getProjet(), actor, msg, saved.getGravite() == Gravite.BLOQUANTE ? "CRITICAL_ANOMALY" : "NEW_ANOMALY");
 
         return saved;
     }
@@ -121,6 +155,10 @@ public class AnomalieService {
         anomalie.setDescription(dto.getDescription());
         anomalie.setGravite(dto.getGravite());
         anomalie.setUrlCapture(dto.getUrlCapture());
+
+        // Recalcule la sévérité prédite à chaque modification (best-effort)
+        applyPrediction(anomalie, dto);
+
         return anomalieRepository.save(anomalie);
     }
 

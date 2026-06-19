@@ -1,0 +1,29 @@
+graph TB
+    subgraph USER["Client"]
+        BROWSER["Navigateur Web Chrome/Firefox"]
+    end
+
+    subgraph SERVER["Machine Serveur"]
+        subgraph FE["Frontend - Port 5173"]
+            REACT["React 18 + Vite + Tailwind"]
+        end
+        subgraph BE["Backend - Port 8081"]
+            SPRING["Spring Boot 3.2.5 - Java 17"]
+        end
+        subgraph DBNODE["Base de donnees - Port 3306"]
+            MYSQL["MySQL 8.0 - testdb"]
+        end
+        subgraph AINODE["IA Locale - Port 11434"]
+            OLLAMA["Ollama Runtime - mistral/deepseek"]
+        end
+    end
+
+    subgraph CLOUD["Cloud"]
+        CDN["Cloudinary CDN - Images"]
+    end
+
+    BROWSER -->|"HTTP :5173"| REACT
+    REACT -->|"HTTP REST + JWT :8081"| SPRING
+    SPRING -->|"JDBC :3306"| MYSQL
+    SPRING -->|"HTTP :11434"| OLLAMA
+    SPRING -->|"HTTPS"| CDN

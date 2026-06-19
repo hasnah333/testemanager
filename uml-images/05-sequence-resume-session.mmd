@@ -1,0 +1,29 @@
+sequenceDiagram
+    actor M as Manager
+    participant F as Frontend React
+    participant SC as SessionController
+    participant SS as SessionTestService
+    participant SUM as SessionSummaryService
+    participant OL as OllamaChatbotService
+    participant LLM as Ollama LLM
+    participant DB as Base de Donnees
+
+    M->>F: Clique Cloturer la session
+    F->>SC: PATCH /api/sessions/id/cloturer
+    SC->>SS: cloturer(sessionId)
+    SS->>DB: findAllExecutions(sessionId)
+    DB-->>SS: List Execution
+    SS->>DB: findAllAnomalies(sessionId)
+    DB-->>SS: List Anomalie
+    SS->>SUM: genererResume(executions, anomalies)
+    SUM->>SUM: calculerStatistiques
+    SUM->>OL: sendMessage(prompt avec stats)
+    OL->>LLM: POST /api/generate
+    LLM-->>OL: Resume en francais
+    OL-->>SUM: String resume
+    SUM-->>SS: SessionResumeResponse
+    SS->>DB: session.setResumeIA(resume)
+    SS->>DB: session.setStatut CLOTUREE
+    SS-->>SC: Session mise a jour
+    SC-->>F: 200 OK avec resume et goLive
+    F-->>M: Resume IA + recommandation go/no-go
